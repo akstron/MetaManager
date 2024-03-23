@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/utils"
 	"os"
@@ -19,7 +20,9 @@ func InitRoot(loc string) error {
 	}
 
 	const configDirName = `.mm`
-	const configFileName = `.mmconfig`
+	const configFileName = `config.json`
+	const configFileIgnoreName = `ignore.json`
+	const dataFileName = `data.json`
 
 	dirPath, err := filepath.Abs(loc)
 	if err != nil {
@@ -46,6 +49,33 @@ func InitRoot(loc string) error {
 	configFilePath := filepath.Join(configDirPath, configFileName)
 
 	_, err = os.Create(configFilePath)
+	if err != nil {
+		return err
+	}
+
+	configFileIgnorePath := filepath.Join(configDirPath, configFileIgnoreName)
+
+	_, err = os.Create(configFileIgnorePath)
+	if err != nil {
+		return err
+	}
+
+	dataFilePath := filepath.Join(configDirPath, dataFileName)
+	_, err = os.Create(dataFilePath)
+	if err != nil {
+		return err
+	}
+
+	/*
+		Write init info into .mmconfig as json
+	*/
+	config := Config{RootPath: dirPath}
+	data, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(configFilePath, data, 0666)
 	if err != nil {
 		return err
 	}

@@ -26,6 +26,10 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+	// err = ignoreCmd.Execute()
+	// if err != nil {
+	// 	os.Exit(1)
+	// }
 }
 
 func init() {
