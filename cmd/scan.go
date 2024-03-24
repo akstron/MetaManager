@@ -15,6 +15,7 @@ import (
 func scanPath(cmd *cobra.Command, args []string) {
 	var err error
 	var root string
+	var mg config.Manager
 	isInitialized, err := utils.IsRootInitialized()
 	if err != nil {
 		goto finally
@@ -30,7 +31,9 @@ func scanPath(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	err = config.ScanDirectory(root)
+	mg = config.Manager{DirPath: root}
+
+	err = mg.ScanDirectory()
 	if err != nil {
 		goto finally
 	}

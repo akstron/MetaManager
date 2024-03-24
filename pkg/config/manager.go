@@ -9,8 +9,13 @@ import (
 	"path/filepath"
 )
 
-func ScanDirectory(dirPath string) error {
-	present, err := utils.IsFilePresent(dirPath)
+type Manager struct {
+	DirPath string
+	root    *Node
+}
+
+func (mg *Manager) ScanDirectory() error {
+	present, err := utils.IsFilePresent(mg.DirPath)
 	if err != nil {
 		return err
 	}
@@ -19,7 +24,7 @@ func ScanDirectory(dirPath string) error {
 		return &cmderror.InvalidPath{}
 	}
 
-	dirPathAbs, err := filepath.Abs(dirPath)
+	dirPathAbs, err := filepath.Abs(mg.DirPath)
 	if err != nil {
 		return err
 	}
@@ -38,14 +43,10 @@ func ScanDirectory(dirPath string) error {
 		return err
 	}
 
-	fmt.Println(rootNode)
-
 	serializedNode, err := json.Marshal(rootNode)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(string(serializedNode))
 
 	var tempRootNode DirNode
 	err = json.Unmarshal(serializedNode, &tempRootNode)
