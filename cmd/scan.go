@@ -5,13 +5,37 @@ package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/config"
+	"github/akstron/MetaManager/pkg/utils"
 
 	"github.com/spf13/cobra"
 )
 
 func scanPath(cmd *cobra.Command, args []string) {
-	err := config.ScanDirectory(".")
+	var err error
+	var root string
+	isInitialized, err := utils.IsRootInitialized()
+	if err != nil {
+		goto finally
+	}
+
+	if !isInitialized {
+		err = &cmderror.UninitializedRoot{}
+		goto finally
+	}
+
+	root, err = utils.GetAbsRootPath()
+	if err != nil {
+		goto finally
+	}
+
+	err = config.ScanDirectory(root)
+	if err != nil {
+		goto finally
+	}
+
+finally:
 	if err != nil {
 		fmt.Println(err)
 	}

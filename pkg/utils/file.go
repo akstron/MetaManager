@@ -1,6 +1,9 @@
 package utils
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+)
 
 /*
 All the mentioned utils can also be used for directories,
@@ -15,4 +18,14 @@ func IsFilePresent(dirPath string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func IsRootInitialized() (bool, error) {
+	dirPath := "./.mm"
+	return IsFilePresent(dirPath)
+}
+
+func GetAbsRootPath() (string, error) {
+	dirPath := "./.mm"
+	return filepath.Abs(dirPath)
 }

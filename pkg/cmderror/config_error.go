@@ -11,3 +11,9 @@ type AlreadyInitPath struct{}
 func (err *AlreadyInitPath) Error() string {
 	return `A .mm directory already exist. Cannot reinitialize the tree path.`
 }
+
+type UninitializedRoot struct{}
+
+func (err *UninitializedRoot) Error() string {
+	return `Current root is uninitialized`
+}
