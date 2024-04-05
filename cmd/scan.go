@@ -4,18 +4,24 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/config"
+	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
 
 func scanPath(cmd *cobra.Command, args []string) {
 	var err error
-	var root string
-	var mg config.Manager
+	var root, dataFilePath, rootDirPath string
+	var mg data.TreeManager
+	var serializedNode []byte
+	var isDataFileEmpty bool
+
 	isInitialized, err := utils.IsRootInitialized()
 	if err != nil {
 		goto finally
@@ -26,14 +32,58 @@ func scanPath(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	root, err = utils.GetAbsRootPath()
+	root, err = utils.GetAbsMMDirPath()
 	if err != nil {
 		goto finally
 	}
 
-	mg = config.Manager{DirPath: root}
+	/*
+		Check if the data.json is already written.
+		Don't override, if already written
+	*/
+	dataFilePath, err = filepath.Abs(root + "/data.json")
+	if err != nil {
+		goto finally
+	}
+
+	isDataFileEmpty, err = utils.IsFileEmpty(dataFilePath)
+	if err != nil {
+		goto finally
+	}
+
+	/*
+		TODO: Write a more reasonable error
+	*/
+	if !isDataFileEmpty {
+		err = &cmderror.ActionForbidden{}
+		goto finally
+	}
+
+	// Get parent directory
+	// TODO: Update this to extract path from config.json
+	rootDirPath, err = filepath.Abs(root + "/..")
+	if err != nil {
+		goto finally
+	}
+
+	// Do other heavy lifting only when data file is empty
+	mg = data.TreeManager{
+		// Parent of root which is .mm directory path
+		DirPath: rootDirPath,
+	}
 
 	err = mg.ScanDirectory()
+	if err != nil {
+		goto finally
+	}
+
+	// Save the tree structure in data.json
+	serializedNode, err = json.Marshal(mg)
+	if err != nil {
+		goto finally
+	}
+
+	err = os.WriteFile(dataFilePath, serializedNode, 0666)
 	if err != nil {
 		goto finally
 	}

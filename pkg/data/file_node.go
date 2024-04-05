@@ -1,4 +1,4 @@
-package config
+package data
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ type GeneralNode struct {
 }
 
 type ScannableNode interface {
-	Scan() error
+	Scan(ScanIgnorable) error
 }
 
 type SerializableNode interface {
@@ -35,7 +35,8 @@ type FileNode struct {
 	GeneralNode
 }
 
-func (fn *FileNode) Scan() error {
+func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
+	// Since, this is not scanning anything, no requirement for check ignorable
 	return nil
 }
 
@@ -44,7 +45,7 @@ type DirNode struct {
 	children []Node
 }
 
-func (fn *DirNode) Scan() error {
+func (fn *DirNode) Scan(ignorer ScanIgnorable) error {
 	entries, err := os.ReadDir(fn.absPath)
 	if err != nil {
 		return err
@@ -60,6 +61,18 @@ func (fn *DirNode) Scan() error {
 		absEntryPath, err := filepath.Abs(fn.absPath + "/" + entry.Name())
 		if err != nil {
 			return err
+		}
+
+		/*
+			Ignorer checks if this path should be ignored
+		*/
+		shouldIgnore, err := ignorer.ShouldIgnore(absEntryPath)
+		if err != nil {
+			return err
+		}
+
+		if shouldIgnore {
+			continue
 		}
 
 		// TODO: Implement factory pattern
@@ -80,7 +93,7 @@ func (fn *DirNode) Scan() error {
 		}
 		fn.children = append(fn.children, curNode)
 		// TODO: Convert this to BFS
-		if err := curNode.Scan(); err != nil {
+		if err := curNode.Scan(ignorer); err != nil {
 			return err
 		}
 	}

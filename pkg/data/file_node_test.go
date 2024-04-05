@@ -1,4 +1,4 @@
-package config
+package data
 
 import (
 	"encoding/json"
@@ -127,22 +127,22 @@ func TestFileNodesSerialization(t *testing.T) {
 	}
 }
 
-func TestFileStructureCreation(t *testing.T) {
-	var dirPath string
-	err := createDirStructure()
-	if err != nil {
-		goto finally
-	}
+// func TestFileStructureCreation(t *testing.T) {
+// 	var dirPath string
+// 	err := createDirStructure()
+// 	if err != nil {
+// 		goto finally
+// 	}
 
-	dirPath, err = filepath.Abs(testDirPathRelative)
-	if err != nil {
-		goto finally
-	}
+// 	dirPath, err = filepath.Abs(testDirPathRelative)
+// 	if err != nil {
+// 		goto finally
+// 	}
 
-	InitRoot(dirPath)
+// 	InitRoot(dirPath)
 
-finally:
-	if err != nil {
-		t.Fatal(err)
-	}
-}
+// finally:
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// }

@@ -67,7 +67,7 @@ func InitRoot(loc string) error {
 	}
 
 	/*
-		Write init info into .mmconfig as json
+		Write init info into config.json as json
 	*/
 	config := Config{RootPath: dirPath}
 	data, err := json.Marshal(config)
