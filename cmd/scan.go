@@ -78,7 +78,7 @@ func scanPath(cmd *cobra.Command, args []string) {
 	}
 
 	// Save the tree structure in data.json
-	serializedNode, err = json.Marshal(mg)
+	serializedNode, err = json.Marshal(mg.Root)
 	if err != nil {
 		goto finally
 	}

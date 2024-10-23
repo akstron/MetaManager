@@ -2,7 +2,6 @@ package data
 
 import (
 	"encoding/json"
-	"github/akstron/MetaManager/pkg/cmderror"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -33,7 +32,7 @@ func attachDir(root *DirNode, num int) *DirNode {
 			absPath: "dir" + strconv.Itoa(num),
 		},
 	}
-	root.children = append(root.children, dirNode)
+	root.DirChildren = append(root.DirChildren, dirNode)
 	return dirNode
 }
 
@@ -43,20 +42,18 @@ func attachFile(root *DirNode, num int) *FileNode {
 			absPath: "file" + strconv.Itoa(num),
 		},
 	}
-	root.children = append(root.children, fileNode)
+	root.FileChildren = append(root.FileChildren, fileNode)
 	return fileNode
 }
 
 func dfs(root *DirNode, tree map[string][]string) error {
-	for _, node := range root.children {
-		if fileNode, ok := node.(*FileNode); ok {
-			tree[root.absPath] = append(tree[root.absPath], fileNode.absPath)
-		} else if dirNode, ok := node.(*DirNode); ok {
-			tree[root.absPath] = append(tree[root.absPath], dirNode.absPath)
-			dfs(dirNode, tree)
-		} else {
-			return &cmderror.SomethingWentWrong{}
-		}
+	for _, node := range root.DirChildren {
+		tree[root.absPath] = append(tree[root.absPath], node.absPath)
+		dfs(node, tree)
+	}
+
+	for _, node := range root.FileChildren {
+		tree[root.absPath] = append(tree[root.absPath], node.absPath)
 	}
 	return nil
 }
@@ -77,6 +74,31 @@ func isEqual(tree1, tree2 map[string][]string) bool {
 		}
 	}
 	return true
+}
+
+func generateDefaultTestTree() (*DirNode, []*DirNode, []*FileNode, error) {
+	root := &DirNode{
+		GeneralNode: GeneralNode{
+			absPath: "dir0",
+		},
+	}
+	dir1 := attachDir(root, 1)
+	dir2 := attachDir(root, 2)
+	dir3 := attachDir(dir1, 3)
+	dir4 := attachDir(dir1, 4)
+	dir5 := attachDir(dir3, 5)
+	file1 := attachFile(root, 1)
+	file2 := attachFile(root, 2)
+	file3 := attachFile(dir2, 3)
+	file4 := attachFile(dir5, 4)
+	file5 := attachFile(dir5, 5)
+	file6 := attachFile(dir5, 6)
+	file7 := attachFile(dir3, 7)
+	file8 := attachFile(dir4, 8)
+
+	dirNodes := []*DirNode{root, dir1, dir2, dir3, dir4, dir5}
+	fileNodes := []*FileNode{file1, file2, file3, file4, file5, file6, file7, file8}
+	return root, dirNodes, fileNodes, nil
 }
 
 func TestFileNodesSerialization(t *testing.T) {

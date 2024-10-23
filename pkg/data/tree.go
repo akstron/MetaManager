@@ -45,6 +45,24 @@ func (ig *NodeAbsPathIgnorer) ShouldIgnore(ignorePath string) (bool, error) {
 	return false, nil
 }
 
+func (mg *TreeManager) FindNodeByAbsPath(path string) (any, error) {
+	// TODO -> Optimization probably
+	queue := []*DirNode{}
+	queue = append(queue, mg.Root)
+	for i := 0; i < len(queue); i++ {
+		if queue[i].absPath == path {
+			return queue[i], nil
+		}
+		for _, child := range queue[i].FileChildren {
+			if child.absPath == path {
+				return child, nil
+			}
+		}
+		queue = append(queue, queue[i].DirChildren...)
+	}
+	return nil, nil
+}
+
 /*
 Loads the tree from data.json file
 Tree Managers role should just be to manage tree nodes
@@ -60,6 +78,25 @@ func (mg *TreeManager) Load(serializedNode []byte) error {
 	}
 
 	mg.Root = &rootNode
+
+	return nil
+}
+
+func (mg *TreeManager) Save(dataFilePath string) error {
+	// TODO: Update this later to save it to any output
+	// currently only saving to file
+	// Also, Saving to file shouldn't be the work of treeManager
+	// Refactor it later
+
+	serializedNode, err := json.Marshal(mg.Root)
+	if err != nil {
+		return err
+	}
+
+	err = utils.SaveToFile(dataFilePath, serializedNode)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -106,7 +143,10 @@ func (mg *TreeManager) ScanDirectory() error {
 		TODO: Probably better to pass pointer
 		We will use go routines to accelerate dfs
 	*/
-	err = mg.Root.Scan(ignorer)
+	handler := ScanHandler{
+		ig: ignorer,
+	}
+	err = mg.Root.Scan(handler)
 
 	if err != nil {
 		return err

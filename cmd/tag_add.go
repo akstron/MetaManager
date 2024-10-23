@@ -5,12 +5,66 @@ package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/pkg/cmderror"
+	"github/akstron/MetaManager/pkg/data"
+	"github/akstron/MetaManager/pkg/utils"
+	"path/filepath"
+	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
 
 func tagAdd(cmd *cobra.Command, args []string) {
-	fmt.Println("tagAdd called")
+	var err error
+	var tgMg *data.TagManager
+	var isPresent bool
+	var dirPath, dataFilePath, tagFilePath, tag string
+
+	if len(args) != 2 {
+		err = &cmderror.InvalidNumberOfArguments{}
+		goto finally
+	}
+
+	isPresent, dirPath, err = utils.FindMMDirPath()
+	if err != nil {
+		goto finally
+	}
+
+	if !isPresent {
+		err = &cmderror.UninitializedRoot{}
+		goto finally
+	}
+
+	dataFilePath, err = filepath.Abs(dirPath + "/" + utils.DATA_FILE_NAME)
+	if err != nil {
+		goto finally
+	}
+
+	tgMg, err = data.NewTagManager(dataFilePath)
+	if err != nil {
+		goto finally
+	}
+
+	tagFilePath = args[0]
+	tag = args[1]
+
+	err = tgMg.AddTag(tagFilePath, tag)
+	if err != nil {
+		goto finally
+	}
+
+	err = tgMg.Save(dataFilePath)
+	if err != nil {
+		goto finally
+	}
+finally:
+	if err != nil {
+		fmt.Println(err)
+		// Print stack trace in case of error
+		debug.PrintStack()
+	} else {
+		fmt.Println("Tag added successfully")
+	}
 }
 
 // tagAddCmd represents the tagAdd command

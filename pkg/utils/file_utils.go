@@ -92,3 +92,7 @@ func IsMMDirPresent(path string) (bool, error) {
 	}
 	return IsFilePresent(mmDirPath)
 }
+
+func SaveToFile(location string, data []byte) error {
+	return os.WriteFile(location, data, 0666)
+}

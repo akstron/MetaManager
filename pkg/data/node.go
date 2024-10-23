@@ -10,25 +10,12 @@ import (
 type GeneralNode struct {
 	absPath string
 	entry   fs.FileInfo
-}
-
-type ScannableNode interface {
-	Scan(ScanIgnorable) error
+	Tags    []string
 }
 
 type SerializableNode interface {
 	MarshalJSON() ([]byte, error)
 	UnmarshalJSON(data []byte) error
-}
-
-type Node interface {
-	/*
-		Composition design pattern
-		Both FileNode and DirNode implements this interface
-	*/
-	ScannableNode
-	// All nodes should be able to tell how they can be serialized/derialized
-	SerializableNode
 }
 
 type FileNode struct {
@@ -42,17 +29,18 @@ func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
 
 type DirNode struct {
 	GeneralNode
-	children []Node
+	DirChildren  []*DirNode
+	FileChildren []*FileNode
 }
 
-func (fn *DirNode) Scan(ignorer ScanIgnorable) error {
+func (fn *DirNode) Scan(handler ScanHandler) error {
 	entries, err := os.ReadDir(fn.absPath)
 	if err != nil {
 		return err
 	}
 
 	for _, entry := range entries {
-		var curNode Node
+		// var curNode Node
 		fileEntry, err := entry.Info()
 		if err != nil {
 			return err
@@ -63,39 +51,36 @@ func (fn *DirNode) Scan(ignorer ScanIgnorable) error {
 			return err
 		}
 
-		/*
-			Ignorer checks if this path should be ignored
-		*/
-		shouldIgnore, err := ignorer.ShouldIgnore(absEntryPath)
-		if err != nil {
-			return err
-		}
-
-		if shouldIgnore {
-			continue
-		}
-
-		// TODO: Implement factory pattern
+		// TODO: Implement some common function (probably)
 		if entry.IsDir() {
-			curNode = &DirNode{
+			dirNode := &DirNode{
 				GeneralNode: GeneralNode{
 					entry:   fileEntry,
 					absPath: absEntryPath,
 				},
+			}
+
+			err = handler.HandleDir(fn, dirNode)
+			if err != nil {
+				return err
+			}
+
+			if err := dirNode.Scan(handler); err != nil {
+				return err
 			}
 		} else {
-			curNode = &FileNode{
+			fileNode := &FileNode{
 				GeneralNode: GeneralNode{
 					entry:   fileEntry,
 					absPath: absEntryPath,
 				},
 			}
+			err = handler.HandleFile(fn, fileNode)
+			if err != nil {
+				return err
+			}
 		}
-		fn.children = append(fn.children, curNode)
 		// TODO: Convert this to BFS
-		if err := curNode.Scan(ignorer); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -105,12 +90,14 @@ type NodeJSON struct {
 	Parent   string
 	Children [][]byte
 	IsDir    bool
+	Tags     []string
 }
 
 func (fn *FileNode) MarshalJSON() ([]byte, error) {
 	obj := NodeJSON{
 		Parent: fn.absPath,
 		IsDir:  false,
+		Tags:   fn.Tags,
 	}
 	return json.Marshal(obj)
 }
@@ -122,17 +109,27 @@ func (fn *FileNode) UnmarshalJSON(data []byte) error {
 
 func (dn *DirNode) MarshalJSON() ([]byte, error) {
 	var childrenSerialized [][]byte
-	for _, node := range dn.children {
+	for _, node := range dn.DirChildren {
 		currentChildSerialized, err := json.Marshal(node)
 		if err != nil {
 			return nil, err
 		}
 		childrenSerialized = append(childrenSerialized, (currentChildSerialized))
 	}
+
+	for _, node := range dn.FileChildren {
+		currentChildSerialized, err := json.Marshal(node)
+		if err != nil {
+			return nil, err
+		}
+		childrenSerialized = append(childrenSerialized, (currentChildSerialized))
+	}
+
 	obj := NodeJSON{
 		Parent:   dn.absPath,
 		Children: childrenSerialized,
 		IsDir:    true,
+		Tags:     dn.Tags,
 	}
 
 	return json.Marshal(&obj)
@@ -144,7 +141,9 @@ func (dn *DirNode) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
+
 	dn.absPath = obj.Parent
+	dn.Tags = obj.Tags
 	for _, child := range obj.Children {
 		var childObj NodeJSON
 		err := json.Unmarshal(child, &childObj)
@@ -153,21 +152,24 @@ func (dn *DirNode) UnmarshalJSON(data []byte) error {
 		}
 
 		childAbsPath := childObj.Parent
-		var curNode Node
+		var curNode SerializableNode
 		if obj.IsDir {
-			curNode = &DirNode{
+			dirNode := &DirNode{
 				GeneralNode: GeneralNode{
 					absPath: childAbsPath,
 				},
 			}
+			dn.DirChildren = append(dn.DirChildren, dirNode)
+			curNode = dirNode
 		} else {
-			curNode = &FileNode{
+			fileNode := &FileNode{
 				GeneralNode: GeneralNode{
 					absPath: childAbsPath,
 				},
 			}
+			dn.FileChildren = append(dn.FileChildren, fileNode)
+			curNode = fileNode
 		}
-		dn.children = append(dn.children, curNode)
 		err = json.Unmarshal(child, &curNode)
 		if err != nil {
 			return err
