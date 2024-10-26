@@ -14,13 +14,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func tagAdd(cmd *cobra.Command, args []string) {
+func tagGet(cmd *cobra.Command, args []string) {
 	var err error
 	var tgMg *data.TagManager
 	var isPresent bool
 	var dirPath, dataFilePath, tagFilePath, tag string
 
-	if len(args) != 2 {
+	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
@@ -71,7 +71,7 @@ finally:
 }
 
 // tagAddCmd represents the tagAdd command
-var tagAddCmd = &cobra.Command{
+var tagGetCmd = &cobra.Command{
 	Use:   "tagAdd",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -81,11 +81,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run:     tagAdd,
-	Aliases: []string{"add"},
+	Aliases: []string{"get"},
 }
 
 func init() {
-	tagCmd.AddCommand(tagAddCmd)
+	tagCmd.AddCommand(tagGetCmd)
 
 	// Here you will define your flags and configuration settings.
 

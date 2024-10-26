@@ -4,23 +4,45 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
-	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
 
+/*
+This will be changed based on certain flags -> Currently not implemented
+*/
+func GetRW() (data.TreeRW, error) {
+	found, root, err := utils.FindMMDirPath()
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+		return nil, &cmderror.UninitializedRoot{}
+	}
+
+	/*
+		Check if the data.json is already written.
+		Don't override, if already written
+	*/
+	dataFilePath, err := filepath.Abs(root + "/data.json")
+	if err != nil {
+		return nil, err
+	}
+
+	return data.NewFileStorageRW(dataFilePath)
+}
+
 func scanPath(cmd *cobra.Command, args []string) {
 	var err error
-	var root, dataFilePath, rootDirPath string
+	var root, rootDirPath string
 	var mg data.TreeManager
-	var serializedNode []byte
-	var isDataFileEmpty bool
+	var rw data.TreeRW
 
 	isInitialized, err := utils.IsRootInitialized()
 	if err != nil {
@@ -37,31 +59,18 @@ func scanPath(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	/*
-		Check if the data.json is already written.
-		Don't override, if already written
-	*/
-	dataFilePath, err = filepath.Abs(root + "/data.json")
-	if err != nil {
-		goto finally
-	}
-
-	isDataFileEmpty, err = utils.IsFileEmpty(dataFilePath)
-	if err != nil {
-		goto finally
-	}
-
-	/*
-		TODO: Write a more reasonable error
-	*/
-	if !isDataFileEmpty {
-		err = &cmderror.ActionForbidden{}
-		goto finally
-	}
-
 	// Get parent directory
 	// TODO: Update this to extract path from config.json
 	rootDirPath, err = filepath.Abs(root + "/..")
+	if err != nil {
+		goto finally
+	}
+
+	/*
+		With this factory method, this code path is free from
+		RW related changes.
+	*/
+	rw, err = GetRW()
 	if err != nil {
 		goto finally
 	}
@@ -77,13 +86,7 @@ func scanPath(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	// Save the tree structure in data.json
-	serializedNode, err = json.Marshal(mg.Root)
-	if err != nil {
-		goto finally
-	}
-
-	err = os.WriteFile(dataFilePath, serializedNode, 0666)
+	err = data.WriteTree(rw, mg.Root)
 	if err != nil {
 		goto finally
 	}

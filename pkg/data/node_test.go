@@ -76,6 +76,9 @@ func isEqual(tree1, tree2 map[string][]string) bool {
 	return true
 }
 
+/*
+Return root, dirNodes, fileNode, error
+*/
 func generateDefaultTestTree() (*DirNode, []*DirNode, []*FileNode, error) {
 	root := &DirNode{
 		GeneralNode: GeneralNode{

@@ -28,7 +28,6 @@ func IsRootInitialized() (bool, error) {
 /*
 This gives the root path of .mm directory
 TODO: Change and test this. Use FindMMDirPath to get path
--- Deprecate this later
 */
 func GetAbsMMDirPath() (string, error) {
 	dirPath := "./.mm"
