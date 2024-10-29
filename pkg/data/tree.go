@@ -11,10 +11,6 @@ import (
 )
 
 /*
-	TODO: Move all this to a new package - data
-*/
-
-/*
 - Manages the nodes
 
 DirPath
@@ -22,6 +18,12 @@ DirPath
 
 root
   - Root of the scanned nodes. DirPath will be scanned
+*/
+
+/*
+TreeManager is the owner of the dir structure.
+All tree related operations should happen with the help
+of TreeManager
 */
 type TreeManager struct {
 	DirPath string

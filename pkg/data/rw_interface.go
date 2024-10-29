@@ -8,7 +8,7 @@ package data
 // Fine-grained interface so that we can optimally read trees according
 // to the storage system
 type TreeReader interface {
-	Read(*DirNode) error
+	Read() (*DirNode, error)
 }
 
 // Fine-grained interface so that we can optimally write trees according
@@ -26,6 +26,6 @@ func WriteTree(tw TreeWriter, node *DirNode) error {
 	return tw.Write(node)
 }
 
-func ReadTree(tr TreeReader, node *DirNode) error {
-	return tr.Read(node)
+func ReadTree(tr TreeReader) (*DirNode, error) {
+	return tr.Read()
 }

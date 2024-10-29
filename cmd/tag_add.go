@@ -17,30 +17,25 @@ import (
 func tagAdd(cmd *cobra.Command, args []string) {
 	var err error
 	var tgMg *data.TagManager
-	var isPresent bool
-	var dirPath, dataFilePath, tagFilePath, tag string
+	var tagFilePath, tag string
+	var rw data.TreeRW
 
 	if len(args) != 2 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	isPresent, dirPath, err = utils.FindMMDirPath()
+	_, err = utils.CommonAlreadyInitializedChecks()
 	if err != nil {
 		goto finally
 	}
 
-	if !isPresent {
-		err = &cmderror.UninitializedRoot{}
-		goto finally
-	}
-
-	dataFilePath, err = filepath.Abs(dirPath + "/" + utils.DATA_FILE_NAME)
+	rw, err = GetRW()
 	if err != nil {
 		goto finally
 	}
 
-	tgMg, err = data.NewTagManager(dataFilePath)
+	tgMg, err = data.NewTagManager(rw)
 	if err != nil {
 		goto finally
 	}
@@ -56,7 +51,7 @@ func tagAdd(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	err = tgMg.Save(dataFilePath)
+	err = tgMg.Save(rw)
 	if err != nil {
 		goto finally
 	}

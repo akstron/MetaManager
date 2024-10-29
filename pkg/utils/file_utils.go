@@ -43,11 +43,6 @@ func IsFileEmpty(filePath string) (bool, error) {
 	return stat.Size() == 0, nil
 }
 
-/*
-Not same as C++
-we can't have same name as FindMMDirPath
-TODO: Check this later
-*/
 func FindMMDirPath() (bool, string, error) {
 	wd, err := os.Getwd()
 	if err != nil {

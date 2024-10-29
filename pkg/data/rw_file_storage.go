@@ -6,11 +6,24 @@ import (
 )
 
 type FileStorageRW struct {
-	DataFilePath string
+	dataFilePath string
 }
 
-func (f *FileStorageRW) Read(root *DirNode) error {
-	return nil
+func (f *FileStorageRW) Read() (*DirNode, error) {
+	rootNode := &DirNode{}
+
+	// Read data in bytes from dataFilePath and construct TreeManager
+	serializedNode, err := os.ReadFile(f.dataFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(serializedNode, rootNode)
+	if err != nil {
+		return nil, err
+	}
+
+	return rootNode, nil
 }
 
 func (f *FileStorageRW) Write(root *DirNode) error {
@@ -20,7 +33,7 @@ func (f *FileStorageRW) Write(root *DirNode) error {
 		return err
 	}
 
-	err = os.WriteFile(f.DataFilePath, serializedNode, 0666)
+	err = os.WriteFile(f.dataFilePath, serializedNode, 0666)
 	if err != nil {
 		return err
 	}
@@ -30,6 +43,6 @@ func (f *FileStorageRW) Write(root *DirNode) error {
 
 func NewFileStorageRW(dataFilePath string) (*FileStorageRW, error) {
 	return &FileStorageRW{
-		DataFilePath: dataFilePath,
+		dataFilePath: dataFilePath,
 	}, nil
 }

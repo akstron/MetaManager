@@ -17,25 +17,22 @@ import (
 func tagGet(cmd *cobra.Command, args []string) {
 	var err error
 	var tgMg *data.TagManager
-	var isPresent bool
 	var dirPath, dataFilePath, tagFilePath, tag string
+	var rw data.TreeRW
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	isPresent, dirPath, err = utils.FindMMDirPath()
+	dirPath, err = utils.CommonAlreadyInitializedChecks()
 	if err != nil {
 		goto finally
 	}
 
-	if !isPresent {
-		err = &cmderror.UninitializedRoot{}
-		goto finally
-	}
+	dataFilePath = filepath.Join(dirPath, utils.DATA_FILE_NAME)
 
-	dataFilePath, err = filepath.Abs(dirPath + "/" + utils.DATA_FILE_NAME)
+	rw, err = GetRW()
 	if err != nil {
 		goto finally
 	}

@@ -30,10 +30,7 @@ func GetRW() (data.TreeRW, error) {
 		Check if the data.json is already written.
 		Don't override, if already written
 	*/
-	dataFilePath, err := filepath.Abs(root + "/data.json")
-	if err != nil {
-		return nil, err
-	}
+	dataFilePath := filepath.Join(root, utils.DATA_FILE_NAME)
 
 	return data.NewFileStorageRW(dataFilePath)
 }

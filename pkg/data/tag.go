@@ -2,35 +2,21 @@ package data
 
 import (
 	"github/akstron/MetaManager/pkg/cmderror"
-	"os"
 )
 
 /*
 Tag related functionalities are implemented here
 */
 type TagManager struct {
-	dataFilePath string
-	trMg         *TreeManager
+	trMg *TreeManager
 }
 
-func NewTagManager(dataFilePath string) (*TagManager, error) {
-	tgMg := &TagManager{
-		dataFilePath: dataFilePath,
-	}
+func NewTagManager(rw TreeReader) (*TagManager, error) {
+	var err error
 
-	// Read data in bytes from dataFilePath and construct TreeManager
-	content, err := os.ReadFile(dataFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	/*
-		WARNING: This does not initialize Root member of TreeManager
-		There can be consequences
-	*/
+	tgMg := &TagManager{}
 	tgMg.trMg = &TreeManager{}
-
-	err = tgMg.trMg.Load(content)
+	tgMg.trMg.Root, err = rw.Read()
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +41,6 @@ func (tgMg *TagManager) AddTag(path string, tag string) error {
 	return nil
 }
 
-func (tgMg *TagManager) Save(dataFilePath string) error {
-	return tgMg.trMg.Save(dataFilePath)
+func (tgMg *TagManager) Save(rw TreeRW) error {
+	return rw.Write(tgMg.trMg.Root)
 }
