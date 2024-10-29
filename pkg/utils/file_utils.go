@@ -53,13 +53,13 @@ func FindMMDirPath() (bool, string, error) {
 	if err != nil {
 		return false, "", err
 	}
-	return FindMMDirPathInternal(wd)
+	return findMMDirPathInternal(wd)
 }
 
 /*
 Recursively searches the parents for .mm directory
 */
-func FindMMDirPathInternal(path string) (bool, string, error) {
+func findMMDirPathInternal(path string) (bool, string, error) {
 	for {
 		isPresent, err := IsMMDirPresent(path)
 		if err != nil {
