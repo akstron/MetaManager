@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"github/akstron/MetaManager/pkg/cmderror"
 )
 
@@ -11,17 +12,24 @@ type TagManager struct {
 	trMg *TreeManager
 }
 
-func NewTagManager(rw TreeReader) (*TagManager, error) {
+func NewTagManager() *TagManager {
+	return &TagManager{}
+}
+
+/*
+TODO: Create a TagReader interface instead
+This way we can decouple tree reading writing from tag
+probably
+*/
+func (tgMg *TagManager) Load(r TreeReader) error {
 	var err error
 
-	tgMg := &TagManager{}
 	tgMg.trMg = &TreeManager{}
-	tgMg.trMg.Root, err = rw.Read()
+	tgMg.trMg.Root, err = r.Read()
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return tgMg, nil
+	return nil
 }
 
 func (tgMg *TagManager) AddTag(path string, tag string) error {
@@ -39,6 +47,13 @@ func (tgMg *TagManager) AddTag(path string, tag string) error {
 	}
 
 	return nil
+}
+
+func (tgMg *TagManager) GetTag() ([]string, error) {
+	if tgMg.trMg == nil {
+		return nil, fmt.Errorf("Invalid operation. Tree not loaded")
+	}
+	return nil, nil
 }
 
 func (tgMg *TagManager) Save(rw TreeRW) error {

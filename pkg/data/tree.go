@@ -1,7 +1,6 @@
 package data
 
 import (
-	"encoding/json"
 	"fmt"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/config"
@@ -28,6 +27,10 @@ of TreeManager
 type TreeManager struct {
 	DirPath string
 	Root    *DirNode
+}
+
+func NewTreeManager() TreeManager {
+	return TreeManager{}
 }
 
 type NodeAbsPathIgnorer struct {
@@ -63,44 +66,6 @@ func (mg *TreeManager) FindNodeByAbsPath(path string) (any, error) {
 		queue = append(queue, queue[i].DirChildren...)
 	}
 	return nil, nil
-}
-
-/*
-Loads the tree from data.json file
-Tree Managers role should just be to manage tree nodes
-It shouldn't know from where to load the data, that's why
-dataFilePath isn't a member variable
-*/
-func (mg *TreeManager) Load(serializedNode []byte) error {
-	var rootNode DirNode
-
-	err := json.Unmarshal(serializedNode, &rootNode)
-	if err != nil {
-		return err
-	}
-
-	mg.Root = &rootNode
-
-	return nil
-}
-
-func (mg *TreeManager) Save(dataFilePath string) error {
-	// TODO: Update this later to save it to any output
-	// currently only saving to file
-	// Also, Saving to file shouldn't be the work of treeManager
-	// Refactor it later
-
-	serializedNode, err := json.Marshal(mg.Root)
-	if err != nil {
-		return err
-	}
-
-	err = utils.SaveToFile(dataFilePath, serializedNode)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 /*

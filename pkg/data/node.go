@@ -22,6 +22,14 @@ type FileNode struct {
 	GeneralNode
 }
 
+func (fn *FileNode) GetFileChildren() []*FileNode {
+	return nil
+}
+
+func (fn *FileNode) GetDirChildren() []*DirNode {
+	return nil
+}
+
 func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
 	// Since, this is not scanning anything, no requirement for check ignorable
 	return nil
@@ -31,6 +39,14 @@ type DirNode struct {
 	GeneralNode
 	DirChildren  []*DirNode
 	FileChildren []*FileNode
+}
+
+func (dn *DirNode) GetFileChildren() []*FileNode {
+	return dn.FileChildren
+}
+
+func (dn *DirNode) GetDirChildren() []*DirNode {
+	return dn.DirChildren
 }
 
 func (fn *DirNode) Scan(handler ScanHandler) error {

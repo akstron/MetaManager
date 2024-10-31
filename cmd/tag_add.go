@@ -35,7 +35,9 @@ func tagAdd(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	tgMg, err = data.NewTagManager(rw)
+	tgMg = data.NewTagManager()
+
+	err = tgMg.Load(rw)
 	if err != nil {
 		goto finally
 	}

@@ -8,7 +8,6 @@ import (
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
-	"path/filepath"
 	"runtime/debug"
 
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ import (
 func tagGet(cmd *cobra.Command, args []string) {
 	var err error
 	var tgMg *data.TagManager
-	var dirPath, dataFilePath, tagFilePath, tag string
+	var tag string
 	var rw data.TreeRW
 
 	if len(args) != 1 {
@@ -25,38 +24,30 @@ func tagGet(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	dirPath, err = utils.CommonAlreadyInitializedChecks()
+	_, err = utils.CommonAlreadyInitializedChecks()
 	if err != nil {
 		goto finally
 	}
-
-	dataFilePath = filepath.Join(dirPath, utils.DATA_FILE_NAME)
 
 	rw, err = GetRW()
 	if err != nil {
 		goto finally
 	}
 
-	tgMg, err = data.NewTagManager(dataFilePath)
+	tgMg = data.NewTagManager()
+
+	err = tgMg.Load(rw)
 	if err != nil {
 		goto finally
 	}
 
-	tagFilePath, err = filepath.Abs(args[0])
-	if err != nil {
-		goto finally
-	}
-	tag = args[1]
+	tag = args[0]
 
-	err = tgMg.AddTag(tagFilePath, tag)
+	err = tgMg.GetTag(tag)
 	if err != nil {
 		goto finally
 	}
 
-	err = tgMg.Save(dataFilePath)
-	if err != nil {
-		goto finally
-	}
 finally:
 	if err != nil {
 		fmt.Println(err)
