@@ -13,6 +13,25 @@ type GeneralNode struct {
 	Tags    []string
 }
 
+/*Get common node information without casting using NodeInformable interface*/
+type NodeInformable interface {
+	GetAbsPath() string
+	GetTags() []string
+	AddTag(string)
+}
+
+func (gn *GeneralNode) GetAbsPath() string {
+	return gn.absPath
+}
+
+func (gn *GeneralNode) GetTags() []string {
+	return gn.Tags
+}
+
+func (gn *GeneralNode) AddTag(tag string) {
+	gn.Tags = append(gn.Tags, tag)
+}
+
 type SerializableNode interface {
 	MarshalJSON() ([]byte, error)
 	UnmarshalJSON(data []byte) error
@@ -28,6 +47,10 @@ func (fn *FileNode) GetFileChildren() []*FileNode {
 
 func (fn *FileNode) GetDirChildren() []*DirNode {
 	return nil
+}
+
+func (fn *FileNode) GetInfoProvider() NodeInformable {
+	return &fn.GeneralNode
 }
 
 func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
@@ -47,6 +70,10 @@ func (dn *DirNode) GetFileChildren() []*FileNode {
 
 func (dn *DirNode) GetDirChildren() []*DirNode {
 	return dn.DirChildren
+}
+
+func (dn *DirNode) GetInfoProvider() NodeInformable {
+	return &dn.GeneralNode
 }
 
 func (fn *DirNode) Scan(handler ScanHandler) error {

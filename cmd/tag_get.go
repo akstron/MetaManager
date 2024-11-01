@@ -13,11 +13,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func tagGet(cmd *cobra.Command, args []string) {
+func tagGetInternal(tag string) ([]string, error) {
+	rw, err := GetRW()
+	if err != nil {
+		return nil, err
+	}
+
+	tgMg := data.NewTagManager()
+
+	err = tgMg.Load(rw)
+	if err != nil {
+		return nil, err
+	}
+
+	paths, err := tgMg.GetTag(tag)
+	if err != nil {
+		return nil, err
+	}
+
+	return paths, nil
+}
+
+func tagGet(_ *cobra.Command, args []string) {
 	var err error
-	var tgMg *data.TagManager
-	var tag string
-	var rw data.TreeRW
+	var paths []string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
@@ -29,24 +48,12 @@ func tagGet(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	rw, err = GetRW()
+	paths, err = tagGetInternal(args[0])
 	if err != nil {
 		goto finally
 	}
 
-	tgMg = data.NewTagManager()
-
-	err = tgMg.Load(rw)
-	if err != nil {
-		goto finally
-	}
-
-	tag = args[0]
-
-	err = tgMg.GetTag(tag)
-	if err != nil {
-		goto finally
-	}
+	fmt.Println(paths)
 
 finally:
 	if err != nil {
@@ -68,7 +75,7 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run:     tagAdd,
+	Run:     tagGet,
 	Aliases: []string{"get"},
 }
 

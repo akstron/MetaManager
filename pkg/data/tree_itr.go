@@ -1,16 +1,17 @@
 package data
 
 type TreeIterable interface {
-	Next() (any, error)
-	HasNext() (bool, error)
+	Next() (NodeInformable, error)
+	HasNext() bool
 }
 
 type NodeIterable interface {
 	GetFileChildren() []*FileNode
 	GetDirChildren() []*DirNode
+	GetInfoProvider() NodeInformable
 }
 
-func NewTreeIterator(tgMg TreeManager) TreeIterator {
+func NewTreeIterator(tgMg *TreeManager) TreeIterator {
 	tI := TreeIterator{
 		tgMg: tgMg,
 	}
@@ -22,32 +23,32 @@ func NewTreeIterator(tgMg TreeManager) TreeIterator {
 }
 
 type TreeIterator struct {
-	tgMg  TreeManager
+	tgMg  *TreeManager
 	index int
 	nodes []NodeIterable
 }
 
-func (ti *TreeIterator) Next() (any, error) {
+func (ti *TreeIterator) Next() (NodeInformable, error) {
 	if ti.index >= len(ti.nodes) {
-		return false, nil
+		return nil, nil
 	}
 
 	fileNodes := ti.nodes[ti.index].GetFileChildren()
-	if fileNodes != nil {
-		for _, filePtr := range fileNodes {
+	for _, filePtr := range fileNodes {
+		if filePtr != nil {
 			ti.nodes = append(ti.nodes, filePtr)
 		}
 	}
 
 	dirNodes := ti.nodes[ti.index].GetDirChildren()
-	if dirNodes != nil {
-		for _, dirPtr := range dirNodes {
+	for _, dirPtr := range dirNodes {
+		if dirPtr != nil {
 			ti.nodes = append(ti.nodes, dirPtr)
 		}
 	}
 
 	ti.index++
-	return ti.nodes[ti.index-1], nil
+	return ti.nodes[ti.index-1].GetInfoProvider(), nil
 }
 
 func (ti *TreeIterator) HasNext() bool {

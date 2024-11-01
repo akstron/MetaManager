@@ -35,11 +35,35 @@ func GetRW() (data.TreeRW, error) {
 	return data.NewFileStorageRW(dataFilePath)
 }
 
+func scanInternal(rootDirPath string) error {
+	rw, err := GetRW()
+	if err != nil {
+		return err
+	}
+
+	// Do other heavy lifting only when data file is empty
+	mg := data.TreeManager{
+		// Parent of root which is .mm directory path
+		DirPath: rootDirPath,
+	}
+
+	err = mg.ScanDirectory()
+	if err != nil {
+		return err
+	}
+
+	err = data.WriteTree(rw, mg.Root)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func scanPath(cmd *cobra.Command, args []string) {
 	var err error
-	var root, rootDirPath string
-	var mg data.TreeManager
-	var rw data.TreeRW
+	var found bool
+	var rootDirPath string
 
 	isInitialized, err := utils.IsRootInitialized()
 	if err != nil {
@@ -51,39 +75,17 @@ func scanPath(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	root, err = utils.GetAbsMMDirPath()
+	found, rootDirPath, err = utils.FindMMDirPath()
 	if err != nil {
 		goto finally
 	}
 
-	// Get parent directory
-	// TODO: Update this to extract path from config.json
-	rootDirPath, err = filepath.Abs(root + "/..")
-	if err != nil {
+	if !found {
+		err = &cmderror.UninitializedRoot{}
 		goto finally
 	}
 
-	/*
-		With this factory method, this code path is free from
-		RW related changes.
-	*/
-	rw, err = GetRW()
-	if err != nil {
-		goto finally
-	}
-
-	// Do other heavy lifting only when data file is empty
-	mg = data.TreeManager{
-		// Parent of root which is .mm directory path
-		DirPath: rootDirPath,
-	}
-
-	err = mg.ScanDirectory()
-	if err != nil {
-		goto finally
-	}
-
-	err = data.WriteTree(rw, mg.Root)
+	err = scanInternal(rootDirPath)
 	if err != nil {
 		goto finally
 	}

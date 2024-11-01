@@ -14,11 +14,40 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func tagAddInternal(args []string) error {
+	rw, err := GetRW()
+	if err != nil {
+		return err
+	}
+
+	tgMg := data.NewTagManager()
+
+	err = tgMg.Load(rw)
+	if err != nil {
+		return err
+	}
+
+	tagFilePath, err := filepath.Abs(args[0])
+	if err != nil {
+		return err
+	}
+	tag := args[1]
+
+	err = tgMg.AddTag(tagFilePath, tag)
+	if err != nil {
+		return err
+	}
+
+	err = tgMg.Save(rw)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func tagAdd(cmd *cobra.Command, args []string) {
 	var err error
-	var tgMg *data.TagManager
-	var tagFilePath, tag string
-	var rw data.TreeRW
 
 	if len(args) != 2 {
 		err = &cmderror.InvalidNumberOfArguments{}
@@ -30,33 +59,11 @@ func tagAdd(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	rw, err = GetRW()
+	err = tagAddInternal(args)
 	if err != nil {
 		goto finally
 	}
 
-	tgMg = data.NewTagManager()
-
-	err = tgMg.Load(rw)
-	if err != nil {
-		goto finally
-	}
-
-	tagFilePath, err = filepath.Abs(args[0])
-	if err != nil {
-		goto finally
-	}
-	tag = args[1]
-
-	err = tgMg.AddTag(tagFilePath, tag)
-	if err != nil {
-		goto finally
-	}
-
-	err = tgMg.Save(rw)
-	if err != nil {
-		goto finally
-	}
 finally:
 	if err != nil {
 		fmt.Println(err)

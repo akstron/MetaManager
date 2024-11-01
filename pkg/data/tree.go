@@ -50,21 +50,23 @@ func (ig *NodeAbsPathIgnorer) ShouldIgnore(ignorePath string) (bool, error) {
 	return false, nil
 }
 
-func (mg *TreeManager) FindNodeByAbsPath(path string) (any, error) {
-	// TODO -> Optimization probably
-	queue := []*DirNode{}
-	queue = append(queue, mg.Root)
-	for i := 0; i < len(queue); i++ {
-		if queue[i].absPath == path {
-			return queue[i], nil
+func (mg *TreeManager) FindNodeByAbsPath(path string) (NodeInformable, error) {
+	ti := NewTreeIterator(mg)
+	return mg.findNodeByAbsPathInternal(ti, path)
+}
+
+func (mg *TreeManager) findNodeByAbsPathInternal(it TreeIterator, path string) (NodeInformable, error) {
+	for it.HasNext() {
+		got, err := it.Next()
+		if err != nil {
+			return nil, err
 		}
-		for _, child := range queue[i].FileChildren {
-			if child.absPath == path {
-				return child, nil
-			}
+
+		if got.GetAbsPath() == path {
+			return got, nil
 		}
-		queue = append(queue, queue[i].DirChildren...)
 	}
+
 	return nil, nil
 }
 

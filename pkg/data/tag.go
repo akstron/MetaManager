@@ -2,7 +2,6 @@ package data
 
 import (
 	"fmt"
-	"github/akstron/MetaManager/pkg/cmderror"
 )
 
 /*
@@ -33,27 +32,52 @@ func (tgMg *TagManager) Load(r TreeReader) error {
 }
 
 func (tgMg *TagManager) AddTag(path string, tag string) error {
-	treeNode, err := tgMg.trMg.FindNodeByAbsPath(path)
+	nodeInfo, err := tgMg.trMg.FindNodeByAbsPath(path)
 	if err != nil {
 		return err
 	}
 
-	if fileNode, ok := treeNode.(*FileNode); ok {
-		fileNode.Tags = append(fileNode.Tags, tag)
-	} else if dirNode, ok := treeNode.(*DirNode); ok {
-		dirNode.Tags = append(dirNode.Tags, tag)
-	} else {
-		return &cmderror.SomethingWentWrong{}
+	if nodeInfo == nil {
+		return fmt.Errorf("path: %s not tracked", path)
 	}
+
+	nodeInfo.AddTag(tag)
 
 	return nil
 }
 
-func (tgMg *TagManager) GetTag() ([]string, error) {
+func (tgMg *TagManager) GetTag(tag string) ([]string, error) {
 	if tgMg.trMg == nil {
-		return nil, fmt.Errorf("Invalid operation. Tree not loaded")
+		return nil, fmt.Errorf("invalid operation, tree not loaded")
 	}
-	return nil, nil
+
+	it := NewTreeIterator(tgMg.trMg)
+	return tgMg.iterateAndExtractPathsWithTag(&it, tag)
+}
+
+func IsPresent(val string, container []string) bool {
+	for _, eachVal := range container {
+		if eachVal == val {
+			return true
+		}
+	}
+	return false
+}
+
+func (*TagManager) iterateAndExtractPathsWithTag(it TreeIterable, tag string) ([]string, error) {
+	result := []string{}
+	for it.HasNext() {
+		got, err := it.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		nodeTags := got.GetTags()
+		if IsPresent(tag, nodeTags) {
+			result = append(result, got.GetAbsPath())
+		}
+	}
+	return result, nil
 }
 
 func (tgMg *TagManager) Save(rw TreeRW) error {
