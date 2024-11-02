@@ -63,7 +63,7 @@ func scanInternal(rootDirPath string) error {
 func scanPath(cmd *cobra.Command, args []string) {
 	var err error
 	var found bool
-	var rootDirPath string
+	var rootDirPath, mmDirPath string
 
 	isInitialized, err := utils.IsRootInitialized()
 	if err != nil {
@@ -75,7 +75,7 @@ func scanPath(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	found, rootDirPath, err = utils.FindMMDirPath()
+	found, mmDirPath, err = utils.FindMMDirPath()
 	if err != nil {
 		goto finally
 	}
@@ -84,6 +84,8 @@ func scanPath(cmd *cobra.Command, args []string) {
 		err = &cmderror.UninitializedRoot{}
 		goto finally
 	}
+
+	rootDirPath = filepath.Join(mmDirPath, "../")
 
 	err = scanInternal(rootDirPath)
 	if err != nil {

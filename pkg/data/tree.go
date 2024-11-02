@@ -62,6 +62,7 @@ func (mg *TreeManager) findNodeByAbsPathInternal(it TreeIterator, path string) (
 			return nil, err
 		}
 
+		fmt.Println(got.GetAbsPath())
 		if got.GetAbsPath() == path {
 			return got, nil
 		}

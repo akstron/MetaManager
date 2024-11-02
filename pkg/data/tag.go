@@ -46,13 +46,26 @@ func (tgMg *TagManager) AddTag(path string, tag string) error {
 	return nil
 }
 
-func (tgMg *TagManager) GetTag(tag string) ([]string, error) {
+func (tgMg *TagManager) GetTaggedNodes(tag string) ([]string, error) {
 	if tgMg.trMg == nil {
 		return nil, fmt.Errorf("invalid operation, tree not loaded")
 	}
 
 	it := NewTreeIterator(tgMg.trMg)
 	return tgMg.iterateAndExtractPathsWithTag(&it, tag)
+}
+
+func (tgMg *TagManager) GetNodeTags(path string) ([]string, error) {
+	if tgMg.trMg == nil {
+		return nil, fmt.Errorf("invalid operation, tree not loaded")
+	}
+
+	nodeInfo, err := tgMg.trMg.FindNodeByAbsPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return nodeInfo.GetTags(), nil
 }
 
 func IsPresent(val string, container []string) bool {
