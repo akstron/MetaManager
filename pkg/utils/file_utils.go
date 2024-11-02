@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -44,7 +45,12 @@ func IsFileEmpty(filePath string) (bool, error) {
 }
 
 func FindMMDirPath() (bool, string, error) {
+	testEnvDir := os.Getenv("MM_TEST_ENV_DIR")
 	wd, err := os.Getwd()
+	if testEnvDir != "" {
+		wd = testEnvDir
+	}
+	fmt.Println(wd)
 	if err != nil {
 		return false, "", err
 	}

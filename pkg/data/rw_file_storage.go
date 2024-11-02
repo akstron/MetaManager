@@ -9,8 +9,8 @@ type FileStorageRW struct {
 	dataFilePath string
 }
 
-func (f *FileStorageRW) Read() (*DirNode, error) {
-	rootNode := &DirNode{}
+func (f *FileStorageRW) Read() (*TreeNode, error) {
+	rootNode := &TreeNode{}
 
 	// Read data in bytes from dataFilePath and construct TreeManager
 	serializedNode, err := os.ReadFile(f.dataFilePath)
@@ -26,7 +26,7 @@ func (f *FileStorageRW) Read() (*DirNode, error) {
 	return rootNode, nil
 }
 
-func (f *FileStorageRW) Write(root *DirNode) error {
+func (f *FileStorageRW) Write(root *TreeNode) error {
 	// Save the tree structure in data.json
 	serializedNode, err := json.Marshal(root)
 	if err != nil {
@@ -45,4 +45,12 @@ func NewFileStorageRW(dataFilePath string) (*FileStorageRW, error) {
 	return &FileStorageRW{
 		dataFilePath: dataFilePath,
 	}, nil
+}
+
+type FileStorageRWFactory struct {
+	dirFilePath string
+}
+
+func (factory *FileStorageRWFactory) GetTreeRW() (TreeRW, error) {
+	return NewFileStorageRW(factory.dirFilePath)
 }

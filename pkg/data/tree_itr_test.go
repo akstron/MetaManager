@@ -7,27 +7,42 @@ import (
 )
 
 func TestTreeNodeIteration(t *testing.T) {
-	root := &DirNode{
-		FileChildren: []*FileNode{
-			{}, {}, {},
-		},
-		DirChildren: []*DirNode{
-			{},
+	root := &TreeNode{
+		info: &DirNode{},
+		children: []*TreeNode{
 			{
-				DirChildren: []*DirNode{
-					{}, {},
+				info: &FileNode{},
+			},
+			{
+				info: &DirNode{},
+				children: []*TreeNode{
+					{
+						info: &DirNode{},
+						children: []*TreeNode{
+							{
+								info: &FileNode{},
+							},
+						},
+					},
+					{
+						info: &DirNode{},
+					},
+					{
+						info: &DirNode{},
+					},
+					{
+						info: &FileNode{},
+					},
 				},
-				FileChildren: []*FileNode{
-					{},
-				},
+			},
+			{
+				info: &FileNode{},
 			},
 		},
 	}
 
-	trMg := NewTreeManager()
-	trMg.Root = root
-
-	it := NewTreeIterator(&trMg)
+	trMg := NewTreeManager(root)
+	it := NewTreeIterator(trMg)
 	dirCnt := 0
 	fileCnt := 0
 
@@ -50,27 +65,43 @@ func TestTreeNodeIteration(t *testing.T) {
 }
 
 func TestTreeNodeIterationWithNilEntries(t *testing.T) {
-	root := &DirNode{
-		FileChildren: []*FileNode{
-			{}, nil, {},
-		},
-		DirChildren: []*DirNode{
-			{},
+
+	root := &TreeNode{
+		info: &DirNode{},
+		children: []*TreeNode{
 			{
-				DirChildren: []*DirNode{
-					nil, {},
+				info: &FileNode{},
+			},
+			{
+				info: &DirNode{},
+				children: []*TreeNode{
+					{
+						info: &DirNode{},
+						children: []*TreeNode{
+							{
+								info: &FileNode{},
+							},
+						},
+					},
+					{
+						info: nil,
+					},
+					{
+						info: &DirNode{},
+					},
+					{
+						info: nil,
+					},
 				},
-				FileChildren: []*FileNode{
-					{},
-				},
+			},
+			{
+				info: &FileNode{},
 			},
 		},
 	}
 
-	trMg := NewTreeManager()
-	trMg.Root = root
-
-	it := NewTreeIterator(&trMg)
+	trMg := NewTreeManager(root)
+	it := NewTreeIterator(trMg)
 	dirCnt := 0
 	fileCnt := 0
 

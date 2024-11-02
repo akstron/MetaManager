@@ -3,6 +3,7 @@ package cmd
 import (
 	"github/akstron/MetaManager/pkg/config"
 	"github/akstron/MetaManager/pkg/utils"
+	"os"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -45,6 +46,7 @@ func TestTagAddAndGetE2E(t *testing.T) {
 	}
 
 	testExecFunc := func(t *testing.T, root string) {
+		os.Setenv("MM_TEST_ENV_DIR", root)
 		err := InitializeRootAndScan(root)
 		require.NoError(t, err)
 

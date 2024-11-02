@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/filesys"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
@@ -41,18 +42,12 @@ func scanInternal(rootDirPath string) error {
 		return err
 	}
 
-	// Do other heavy lifting only when data file is empty
-	mg := data.TreeManager{
-		// Parent of root which is .mm directory path
-		DirPath: rootDirPath,
-	}
-
-	err = mg.ScanDirectory()
+	rootNode, err := filesys.ScanDirectory(rootDirPath)
 	if err != nil {
 		return err
 	}
 
-	err = data.WriteTree(rw, mg.Root)
+	err = data.WriteTree(rw, rootNode)
 	if err != nil {
 		return err
 	}

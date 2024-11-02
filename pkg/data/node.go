@@ -13,6 +13,13 @@ type GeneralNode struct {
 	Tags    []string
 }
 
+func NewGeneralNode(absPath string, entry fs.FileInfo) GeneralNode {
+	return GeneralNode{
+		absPath: absPath,
+		entry:   entry,
+	}
+}
+
 /*Get common node information without casting using NodeInformable interface*/
 type NodeInformable interface {
 	GetAbsPath() string
@@ -41,17 +48,17 @@ type FileNode struct {
 	GeneralNode
 }
 
-func (fn *FileNode) GetFileChildren() []*FileNode {
-	return nil
-}
+// func (fn *FileNode) GetFileChildren() []*FileNode {
+// 	return nil
+// }
 
-func (fn *FileNode) GetDirChildren() []*DirNode {
-	return nil
-}
+// func (fn *FileNode) GetDirChildren() []*DirNode {
+// 	return nil
+// }
 
-func (fn *FileNode) GetChildren() []NodeIterable {
-	return nil
-}
+// func (fn *FileNode) GetChildren() []NodeIterable {
+// 	return nil
+// }
 
 func (fn *FileNode) GetInfoProvider() NodeInformable {
 	return fn
@@ -64,49 +71,59 @@ func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
 
 type DirNode struct {
 	GeneralNode
-	DirChildren  []*DirNode
-	FileChildren []*FileNode
+	// DirChildren  []*DirNode
+	// FileChildren []*FileNode
 }
 
-func (dn *DirNode) GetFileChildren() []*FileNode {
-	return dn.FileChildren
-}
+// func (dn *DirNode) GetFileChildren() []*FileNode {
+// 	return dn.FileChildren
+// }
 
-func (dn *DirNode) GetDirChildren() []*DirNode {
-	return dn.DirChildren
-}
+// func (dn *DirNode) GetDirChildren() []*DirNode {
+// 	return dn.DirChildren
+// }
 
-func (dn *DirNode) GetChildren() []NodeIterable {
-	var result []NodeIterable
-	for _, node := range dn.GetDirChildren() {
-		result = append(result, node)
-	}
-	for _, node := range dn.GetFileChildren() {
-		result = append(result, node)
-	}
-	return result
-}
+// func (dn *DirNode) GetChildren() []NodeIterable {
+// 	var result []NodeIterable
+// 	for _, node := range dn.GetDirChildren() {
+// 		result = append(result, node)
+// 	}
+// 	for _, node := range dn.GetFileChildren() {
+// 		result = append(result, node)
+// 	}
+// 	return result
+// }
 
 func (dn *DirNode) GetInfoProvider() NodeInformable {
 	return dn
 }
 
-func (fn *DirNode) Scan(handler ScanHandler) error {
+func ScanFile(fn *FileNode, handler ScanningHandler) (*TreeNode, error) {
+	return &TreeNode{
+		info: fn,
+	}, nil
+}
+
+func ScanDir(fn *DirNode, handler ScanningHandler) (*TreeNode, error) {
+	curTreeNode := &TreeNode{
+		info: fn,
+	}
+
 	entries, err := os.ReadDir(fn.absPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, entry := range entries {
 		// var curNode Node
 		fileEntry, err := entry.Info()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		absEntryPath, err := filepath.Abs(fn.absPath + "/" + entry.Name())
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// TODO: Implement some common function (probably)
@@ -118,13 +135,15 @@ func (fn *DirNode) Scan(handler ScanHandler) error {
 				},
 			}
 
-			err = handler.HandleDir(fn, dirNode)
+			err = handler.HandleDir(curTreeNode, dirNode)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			if err := dirNode.Scan(handler); err != nil {
-				return err
+			if childTreeNode, err := ScanDir(dirNode, handler); err != nil {
+				return nil, err
+			} else {
+				curTreeNode.children = append(curTreeNode.children, childTreeNode)
 			}
 		} else {
 			fileNode := &FileNode{
@@ -133,15 +152,21 @@ func (fn *DirNode) Scan(handler ScanHandler) error {
 					absPath: absEntryPath,
 				},
 			}
-			err = handler.HandleFile(fn, fileNode)
+			err = handler.HandleFile(curTreeNode, fileNode)
 			if err != nil {
-				return err
+				return nil, err
+			}
+
+			if childTreeNode, err := ScanFile(fileNode, handler); err != nil {
+				return nil, err
+			} else {
+				curTreeNode.children = append(curTreeNode.children, childTreeNode)
 			}
 		}
 		// TODO: Convert this to BFS
 	}
 
-	return nil
+	return curTreeNode, nil
 }
 
 type NodeJSON struct {
@@ -162,32 +187,20 @@ func (fn *FileNode) MarshalJSON() ([]byte, error) {
 
 func (fn *FileNode) UnmarshalJSON(data []byte) error {
 	var obj NodeJSON
-	return json.Unmarshal(data, &obj)
+	err := json.Unmarshal(data, &obj)
+	if err != nil {
+		return err
+	}
+	fn.absPath = obj.Parent
+	fn.Tags = obj.Tags
+	return nil
 }
 
 func (dn *DirNode) MarshalJSON() ([]byte, error) {
-	var childrenSerialized [][]byte
-	for _, node := range dn.DirChildren {
-		currentChildSerialized, err := json.Marshal(node)
-		if err != nil {
-			return nil, err
-		}
-		childrenSerialized = append(childrenSerialized, (currentChildSerialized))
-	}
-
-	for _, node := range dn.FileChildren {
-		currentChildSerialized, err := json.Marshal(node)
-		if err != nil {
-			return nil, err
-		}
-		childrenSerialized = append(childrenSerialized, (currentChildSerialized))
-	}
-
 	obj := NodeJSON{
-		Parent:   dn.absPath,
-		Children: childrenSerialized,
-		IsDir:    true,
-		Tags:     dn.Tags,
+		Parent: dn.absPath,
+		IsDir:  true,
+		Tags:   dn.Tags,
 	}
 
 	return json.Marshal(&obj)
@@ -199,40 +212,7 @@ func (dn *DirNode) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-
 	dn.absPath = obj.Parent
 	dn.Tags = obj.Tags
-	for _, child := range obj.Children {
-		var childObj NodeJSON
-		err := json.Unmarshal(child, &childObj)
-		if err != nil {
-			return err
-		}
-
-		childAbsPath := childObj.Parent
-		var curNode SerializableNode
-		if obj.IsDir {
-			dirNode := &DirNode{
-				GeneralNode: GeneralNode{
-					absPath: childAbsPath,
-				},
-			}
-			dn.DirChildren = append(dn.DirChildren, dirNode)
-			curNode = dirNode
-		} else {
-			fileNode := &FileNode{
-				GeneralNode: GeneralNode{
-					absPath: childAbsPath,
-				},
-			}
-			dn.FileChildren = append(dn.FileChildren, fileNode)
-			curNode = fileNode
-		}
-		err = json.Unmarshal(child, &curNode)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
