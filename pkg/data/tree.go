@@ -24,10 +24,20 @@ TreeManager is the owner of the dir structure.
 All tree related operations should happen with the help
 of TreeManager
 */
+// type TreeNode struct {
+// 	/*Store any info in a node*/
+// 	info     any
+// 	children []*TreeNode
+// }
+
 type TreeManager struct {
 	DirPath string
 	Root    *DirNode
 }
+
+// type TreeManager struct {
+// 	Root *TreeNode
+// }
 
 func NewTreeManager() TreeManager {
 	return TreeManager{}
@@ -62,7 +72,6 @@ func (mg *TreeManager) findNodeByAbsPathInternal(it TreeIterator, path string) (
 			return nil, err
 		}
 
-		fmt.Println(got.GetAbsPath())
 		if got.GetAbsPath() == path {
 			return got, nil
 		}

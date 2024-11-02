@@ -49,8 +49,12 @@ func (fn *FileNode) GetDirChildren() []*DirNode {
 	return nil
 }
 
+func (fn *FileNode) GetChildren() []NodeIterable {
+	return nil
+}
+
 func (fn *FileNode) GetInfoProvider() NodeInformable {
-	return &fn.GeneralNode
+	return fn
 }
 
 func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
@@ -72,8 +76,19 @@ func (dn *DirNode) GetDirChildren() []*DirNode {
 	return dn.DirChildren
 }
 
+func (dn *DirNode) GetChildren() []NodeIterable {
+	var result []NodeIterable
+	for _, node := range dn.GetDirChildren() {
+		result = append(result, node)
+	}
+	for _, node := range dn.GetFileChildren() {
+		result = append(result, node)
+	}
+	return result
+}
+
 func (dn *DirNode) GetInfoProvider() NodeInformable {
-	return &dn.GeneralNode
+	return dn
 }
 
 func (fn *DirNode) Scan(handler ScanHandler) error {
