@@ -1,7 +1,7 @@
 package data
 
 type TreeIterable interface {
-	Next() (NodeInformable, error)
+	Next() (any, error)
 	HasNext() bool
 }
 
@@ -35,7 +35,10 @@ type TreeIterator struct {
 	nodes []*TreeNode
 }
 
-func (ti *TreeIterator) Next() (NodeInformable, error) {
+/*
+TODO: Change this to return any.
+*/
+func (ti *TreeIterator) Next() (any, error) {
 	if ti.index >= len(ti.nodes) {
 		return nil, nil
 	}
@@ -48,7 +51,7 @@ func (ti *TreeIterator) Next() (NodeInformable, error) {
 	}
 
 	ti.index++
-	fileNodeIterable := ti.nodes[ti.index-1].info.(NodeInformable)
+	fileNodeIterable := ti.nodes[ti.index-1].info
 	return fileNodeIterable, nil
 }
 

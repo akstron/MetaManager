@@ -1,7 +1,6 @@
 package data
 
 import (
-	"encoding/json"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -48,18 +47,6 @@ type FileNode struct {
 	GeneralNode
 }
 
-// func (fn *FileNode) GetFileChildren() []*FileNode {
-// 	return nil
-// }
-
-// func (fn *FileNode) GetDirChildren() []*DirNode {
-// 	return nil
-// }
-
-// func (fn *FileNode) GetChildren() []NodeIterable {
-// 	return nil
-// }
-
 func (fn *FileNode) GetInfoProvider() NodeInformable {
 	return fn
 }
@@ -71,28 +58,7 @@ func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
 
 type DirNode struct {
 	GeneralNode
-	// DirChildren  []*DirNode
-	// FileChildren []*FileNode
 }
-
-// func (dn *DirNode) GetFileChildren() []*FileNode {
-// 	return dn.FileChildren
-// }
-
-// func (dn *DirNode) GetDirChildren() []*DirNode {
-// 	return dn.DirChildren
-// }
-
-// func (dn *DirNode) GetChildren() []NodeIterable {
-// 	var result []NodeIterable
-// 	for _, node := range dn.GetDirChildren() {
-// 		result = append(result, node)
-// 	}
-// 	for _, node := range dn.GetFileChildren() {
-// 		result = append(result, node)
-// 	}
-// 	return result
-// }
 
 func (dn *DirNode) GetInfoProvider() NodeInformable {
 	return dn
@@ -167,52 +133,4 @@ func ScanDir(fn *DirNode, handler ScanningHandler) (*TreeNode, error) {
 	}
 
 	return curTreeNode, nil
-}
-
-type NodeJSON struct {
-	Parent   string
-	Children [][]byte
-	IsDir    bool
-	Tags     []string
-}
-
-func (fn *FileNode) MarshalJSON() ([]byte, error) {
-	obj := NodeJSON{
-		Parent: fn.absPath,
-		IsDir:  false,
-		Tags:   fn.Tags,
-	}
-	return json.Marshal(obj)
-}
-
-func (fn *FileNode) UnmarshalJSON(data []byte) error {
-	var obj NodeJSON
-	err := json.Unmarshal(data, &obj)
-	if err != nil {
-		return err
-	}
-	fn.absPath = obj.Parent
-	fn.Tags = obj.Tags
-	return nil
-}
-
-func (dn *DirNode) MarshalJSON() ([]byte, error) {
-	obj := NodeJSON{
-		Parent: dn.absPath,
-		IsDir:  true,
-		Tags:   dn.Tags,
-	}
-
-	return json.Marshal(&obj)
-}
-
-func (dn *DirNode) UnmarshalJSON(data []byte) error {
-	var obj NodeJSON
-	err := json.Unmarshal(data, &obj)
-	if err != nil {
-		return err
-	}
-	dn.absPath = obj.Parent
-	dn.Tags = obj.Tags
-	return nil
 }

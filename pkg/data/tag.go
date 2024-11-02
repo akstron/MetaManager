@@ -85,9 +85,9 @@ func (*TagManager) iterateAndExtractPathsWithTag(it TreeIterable, tag string) ([
 			return nil, err
 		}
 
-		nodeTags := got.GetTags()
+		nodeTags := got.(NodeInformable).GetTags()
 		if IsPresent(tag, nodeTags) {
-			result = append(result, got.GetAbsPath())
+			result = append(result, got.(NodeInformable).GetAbsPath())
 		}
 	}
 	return result, nil

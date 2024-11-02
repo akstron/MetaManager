@@ -1,5 +1,12 @@
 package data
 
+// TODO: Fix this test
+
+// import (
+// 	"strconv"
+// 	"testing"
+// )
+
 // func TestAddTagToNode(t *testing.T) {
 // 	root, dirNodes, fileNodes, err := generateDefaultTestTree()
 // 	if err != nil {
