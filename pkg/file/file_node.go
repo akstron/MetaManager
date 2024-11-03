@@ -1,7 +1,9 @@
 package file
 
 import (
+	"github/akstron/MetaManager/ds"
 	"io/fs"
+	"os"
 )
 
 /*Get common node information without casting using NodeInformable interface*/
@@ -48,11 +50,6 @@ func (fn *FileNode) GetInfoProvider() NodeInformable {
 	return fn
 }
 
-func (fn *FileNode) Scan(ignorable ScanIgnorable) error {
-	// Since, this is not scanning anything, no requirement for check ignorable
-	return nil
-}
-
 func (fn *FileNode) Name() string {
 	return "FILE"
 }
@@ -67,4 +64,32 @@ func (dn *DirNode) GetInfoProvider() NodeInformable {
 
 func (dn *DirNode) Name() string {
 	return "DIR"
+}
+
+func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
+	entry, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var info ds.TreeNodeInformable
+	if entry.IsDir() {
+		info = &DirNode{
+			GeneralNode: GeneralNode{
+				AbsPath: path,
+				Entry:   entry,
+			},
+		}
+	} else {
+		info = &FileNode{
+			GeneralNode: GeneralNode{
+				AbsPath: path,
+				Entry:   entry,
+			},
+		}
+	}
+
+	return &ds.TreeNode{
+		Info: info,
+	}, nil
 }

@@ -4,43 +4,14 @@ import (
 	"fmt"
 	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/file"
-	"os"
 )
 
 type DirTreeManager struct {
 	*ds.TreeManager
 }
 
-func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
-	entry, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var info ds.TreeNodeInformable
-	if entry.IsDir() {
-		info = &file.DirNode{
-			GeneralNode: file.GeneralNode{
-				AbsPath: path,
-				Entry:   entry,
-			},
-		}
-	} else {
-		info = &file.FileNode{
-			GeneralNode: file.GeneralNode{
-				AbsPath: path,
-				Entry:   entry,
-			},
-		}
-	}
-
-	return &ds.TreeNode{
-		Info: info,
-	}, nil
-}
-
 func (mg *DirTreeManager) MergeNodeWithPath(path string) error {
-	treeNode, err := CreateTreeNodeFromPath(path)
+	treeNode, err := file.CreateTreeNodeFromPath(path)
 	if err != nil {
 		return err
 	}

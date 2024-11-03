@@ -1,6 +1,9 @@
-package file
+package filesys
 
-import "github/akstron/MetaManager/pkg/config"
+import (
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/config"
+)
 
 /*
 Why this interface?
@@ -33,4 +36,24 @@ func (ig *NodeAbsPathIgnorer) ShouldIgnore(ignorePath string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+type ScanningHandler interface {
+	Handle(*ds.TreeNode, *ds.TreeNode) error
+}
+
+type ScanHandler struct {
+	ig ScanIgnorable
+}
+
+func NewScanHandler(ig ScanIgnorable) *ScanHandler {
+	return &ScanHandler{
+		ig: ig,
+	}
+}
+
+func (sh *ScanHandler) Handle(parentNode *ds.TreeNode, curNode *ds.TreeNode) error {
+	parentNode.AddChild(curNode)
+
+	return nil
 }

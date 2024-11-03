@@ -31,8 +31,6 @@ func ScanDirectory(dirPath string) (*ds.TreeNode, error) {
 	}
 
 	topDir := &file.DirNode{GeneralNode: file.NewGeneralNode(dirPathAbs, root)}
-	// treeNode := data.NewTreeNode(topDir)
-	// trMg := data.NewTreeManager(&treeNode)
 
 	igMg, err := config.NewIgnoreManager()
 	if err != nil {
@@ -40,15 +38,15 @@ func ScanDirectory(dirPath string) (*ds.TreeNode, error) {
 	}
 
 	igMg.Load()
-	ignorer := file.NewNodeAbsPathIgnorer(igMg)
+	ignorer := NewNodeAbsPathIgnorer(igMg)
 
 	/*
 		TODO: Probably better to pass pointer
 		We will use go routines to accelerate dfs
 	*/
-	handler := file.NewScanHandler(ignorer)
+	handler := NewScanHandler(ignorer)
 
-	topTreeNode, err := ScanDir(topDir, handler)
+	topTreeNode, err := scanDir(topDir, handler)
 	if err != nil {
 		return nil, err
 	}
@@ -56,13 +54,13 @@ func ScanDirectory(dirPath string) (*ds.TreeNode, error) {
 	return topTreeNode, nil
 }
 
-func ScanFile(fn *file.FileNode, handler file.ScanningHandler) (*ds.TreeNode, error) {
+func scanFile(fn *file.FileNode, handler ScanningHandler) (*ds.TreeNode, error) {
 	return &ds.TreeNode{
 		Info: fn,
 	}, nil
 }
 
-func ScanDir(fn *file.DirNode, handler file.ScanningHandler) (*ds.TreeNode, error) {
+func scanDir(fn *file.DirNode, handler ScanningHandler) (*ds.TreeNode, error) {
 	curTreeNode := &ds.TreeNode{
 		Info: fn,
 	}
@@ -90,7 +88,7 @@ func ScanDir(fn *file.DirNode, handler file.ScanningHandler) (*ds.TreeNode, erro
 				GeneralNode: file.NewGeneralNode(absEntryPath, fileEntry),
 			}
 
-			if childNode, err := ScanDir(dirNode, handler); err != nil {
+			if childNode, err := scanDir(dirNode, handler); err != nil {
 				return nil, err
 			} else {
 				err = handler.Handle(curTreeNode, childNode)
@@ -103,7 +101,7 @@ func ScanDir(fn *file.DirNode, handler file.ScanningHandler) (*ds.TreeNode, erro
 				GeneralNode: file.NewGeneralNode(absEntryPath, fileEntry),
 			}
 
-			if childNode, err := ScanFile(fileNode, handler); err != nil {
+			if childNode, err := scanFile(fileNode, handler); err != nil {
 				return nil, err
 			} else {
 				err = handler.Handle(curTreeNode, childNode)

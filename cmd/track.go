@@ -13,7 +13,7 @@ import (
 )
 
 func trackInternal(path string) error {
-
+	return nil
 }
 
 func track(cmd *cobra.Command, args []string) {
