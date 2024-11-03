@@ -115,6 +115,7 @@ func CreateDirStructure(root *MockDir) (string, error) {
 func ValidateNodeCnt(t *testing.T, node *ds.TreeNode, expCnt int) {
 	it := ds.NewTreeIterator(ds.NewTreeManager(node))
 	cnt := 0
+	fmt.Println("Start:")
 	for it.HasNext() {
 		val, err := it.Next()
 		require.NoError(t, err)
@@ -124,6 +125,6 @@ func ValidateNodeCnt(t *testing.T, node *ds.TreeNode, expCnt int) {
 		fmt.Println(pr.GetAbsPath())
 		cnt += 1
 	}
-	fmt.Println()
+	fmt.Println("End")
 	require.Equal(t, expCnt, cnt)
 }

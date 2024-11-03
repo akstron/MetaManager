@@ -47,26 +47,34 @@ func (mg *DirTreeManager) MergeNode(treeNode *ds.TreeNode) error {
 		return &cmderror.Unexpected{}
 	}
 
-	sec, ok := treeNode.Info.(file.NodeInformable)
-	if !ok {
-		return &cmderror.Unexpected{}
-	}
+	iter := ds.NewTreeIterator(ds.NewTreeManager(treeNode))
+	for iter.HasNext() {
+		got, err := iter.Next()
+		if err != nil {
+			return err
+		}
 
-	// Absolute path of fir should be a prefix of absolute path
-	midPaths := make([]string, 0)
-	firPath := fir.GetAbsPath()
-	secPath := sec.GetAbsPath()
+		sec, ok := got.(file.NodeInformable)
+		if !ok {
+			return &cmderror.Unexpected{}
+		}
 
-	for firPath != secPath && len(secPath) > 0 {
-		midPaths = append(midPaths, secPath)
-		secPath = filepath.Join(secPath, "..")
-	}
+		// Absolute path of fir should be a prefix of absolute path
+		midPaths := make([]string, 0)
+		firPath := fir.GetAbsPath()
+		secPath := sec.GetAbsPath()
 
-	slices.Reverse(midPaths)
+		for firPath != secPath && len(secPath) > 0 {
+			midPaths = append(midPaths, secPath)
+			secPath = filepath.Join(secPath, "..")
+		}
 
-	err := mg.createPathNodes(midPaths)
-	if err != nil {
-		return err
+		slices.Reverse(midPaths)
+
+		err = mg.createPathNodes(midPaths)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

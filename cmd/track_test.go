@@ -1,7 +1,8 @@
-package filesys
+package cmd
 
 import (
 	"github/akstron/MetaManager/pkg/utils"
+	"github/akstron/MetaManager/storage"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTrack(t *testing.T) {
+func TestTrackCmd(t *testing.T) {
 	dirStructure := &utils.MockDir{
 		DirName: "1_1",
 		Files:   []string{"1_a", "1_b"},
@@ -37,23 +38,37 @@ func TestTrack(t *testing.T) {
 
 	testExecFunc := func(t *testing.T, root string) {
 		os.Setenv("MM_TEST_ENV_DIR", root)
+		err := InitRoot(root)
+		require.NoError(t, err)
 
 		loc := filepath.Join(root, "1_a")
 		loc2 := filepath.Join(root, "2_2")
 		loc3 := filepath.Join(root, "2_2")
 		loc3 = loc3 + "*"
 
-		node, err := Track(loc)
-		require.NoError(t, err)
-		utils.ValidateNodeCnt(t, node, 1)
+		locs := []string{
+			loc, loc2, loc3,
+			filepath.Join(root, "2_2", "x"),
+			filepath.Join(root, "2_2", "3_1") + "*",
+			root + "*",
+		}
 
-		node, err = Track(loc2)
-		require.NoError(t, err)
-		utils.ValidateNodeCnt(t, node, 1)
+		outputs := []int{
+			2, 3, 8, 8, 8, 15, /*due to .mm creation*/
+		}
 
-		node, err = Track(loc3)
+		rw, err := storage.GetRW()
 		require.NoError(t, err)
-		utils.ValidateNodeCnt(t, node, 6)
+
+		for i, loc := range locs {
+			err = trackInternal(loc)
+			require.NoError(t, err)
+
+			node, err := rw.Read()
+			require.NoError(t, err)
+
+			utils.ValidateNodeCnt(t, node, outputs[i])
+		}
 	}
 	testExectutor := utils.NewDirLifeCycleTester(t, dirStructure, testExecFunc)
 	testExectutor.Execute()

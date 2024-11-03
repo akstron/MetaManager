@@ -5,14 +5,61 @@ package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/filesys"
 	"github/akstron/MetaManager/pkg/cmderror"
+	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
+	"github/akstron/MetaManager/storage"
 	"runtime/debug"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-func trackInternal(path string) error {
+func trackInternal(pathExp string) error {
+	found, rootDirPath, err := utils.FindRootDir()
+	if err != nil {
+		return err
+	}
+
+	if !found {
+		return &cmderror.Unexpected{}
+	}
+
+	isPathExpInRootDir := strings.HasPrefix(pathExp, rootDirPath)
+	if !isPathExpInRootDir {
+		return &cmderror.InvalidOperation{}
+	}
+
+	rw, err := storage.GetRW()
+	if err != nil {
+		return err
+	}
+
+	root, err := rw.Read()
+	if err != nil {
+		return err
+	}
+
+	subTree, err := filesys.Track(pathExp)
+	if err != nil {
+		return err
+	}
+
+	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
+
+	/*
+		Why no use MergeNodeWithPath ?
+		This is because pathExp can contain * at the end
+	*/
+	drMg.MergeNode(subTree)
+
+	err = rw.Write(drMg.Root)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -25,6 +72,11 @@ func track(cmd *cobra.Command, args []string) {
 	}
 
 	_, err = utils.CommonAlreadyInitializedChecks()
+	if err != nil {
+		goto finally
+	}
+
+	err = trackInternal(args[0])
 	if err != nil {
 		goto finally
 	}

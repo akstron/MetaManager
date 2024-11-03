@@ -4,6 +4,7 @@ import (
 	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/file"
+	"path/filepath"
 )
 
 /*
@@ -23,10 +24,19 @@ func Track(path string) (*ds.TreeNode, error) {
 }
 
 func trackAbs(path string) (*ds.TreeNode, error) {
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+	// Make sure that this extracted path is tracked
 	return file.CreateTreeNodeFromPath(path)
 }
 
 func trackRec(path string) (*ds.TreeNode, error) {
 	rootDirPath := path[0 : len(path)-1]
+	rootDirPath, err := filepath.Abs(rootDirPath)
+	if err != nil {
+		return nil, err
+	}
 	return ScanDirectory(rootDirPath)
 }
