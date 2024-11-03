@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/file"
@@ -136,5 +137,5 @@ func (mg *DirTreeManager) findNodeByAbsPathInternal(it ds.TreeIterator, path str
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("node not found")
 }

@@ -56,6 +56,10 @@ func nodeList(cmd *cobra.Command, args []string) {
 	}
 
 	tags, err = nodeListInternal(args[0])
+	if err != nil {
+		goto finally
+	}
+
 	fmt.Println(tags)
 
 finally:
@@ -68,14 +72,9 @@ finally:
 
 // listTagCmd represents the listTag command
 var nodeListTagCmd = &cobra.Command{
-	Use:   "listTag",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:     "listTag",
+	Short:   "List tags of a file/dir",
+	Long:    "List tags of a file/dir",
 	Run:     nodeList,
 	Aliases: []string{"lt"},
 }
