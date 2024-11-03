@@ -19,6 +19,42 @@ func NewDirTreeManager(trMg *ds.TreeManager) *DirTreeManager {
 	}
 }
 
+func (mg *DirTreeManager) SplitChildrenFromPath(path string) error {
+	curTreeNode, err := mg.FindTreeNodeByAbsPath(path)
+	if err != nil {
+		return err
+	}
+	curTreeNode.Children = []*ds.TreeNode{}
+	return nil
+}
+
+func (mg *DirTreeManager) SplitNodeWithPath(path string) error {
+	if mg.Root.Info.(file.NodeInformable).GetAbsPath() == path {
+		mg.Root = nil
+		return nil
+	}
+
+	parentPath := filepath.Join(path, "..")
+	parentTreeNode, err := mg.FindTreeNodeByAbsPath(parentPath)
+	if err != nil {
+		return err
+	}
+
+	newChildren := []*ds.TreeNode{}
+	for _, child := range parentTreeNode.Children {
+		info, ok := child.Info.(file.NodeInformable)
+		if !ok {
+			return &cmderror.Unexpected{}
+		}
+		if info.GetAbsPath() != path {
+			newChildren = append(newChildren, child)
+		}
+	}
+	parentTreeNode.Children = newChildren
+
+	return nil
+}
+
 func (mg *DirTreeManager) MergeNodeWithPath(path string) error {
 	treeNode, err := file.CreateTreeNodeFromPath(path)
 	if err != nil {

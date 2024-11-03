@@ -113,6 +113,10 @@ func CreateDirStructure(root *MockDir) (string, error) {
 }
 
 func ValidateNodeCnt(t *testing.T, node *ds.TreeNode, expCnt int) {
+	if node == nil {
+		require.Equal(t, expCnt, 0)
+		return
+	}
 	it := ds.NewTreeIterator(ds.NewTreeManager(node))
 	cnt := 0
 	fmt.Println("Start:")
