@@ -121,12 +121,21 @@ func (mg *DirTreeManager) createPathNodesInternal(curNode *ds.TreeNode, paths []
 	return mg.createPathNodesInternal(nextNode, paths, index+1)
 }
 
-func (mg *DirTreeManager) FindNodeByAbsPath(path string) (file.NodeInformable, error) {
+func (mg *DirTreeManager) FindTreeNodeByAbsPath(path string) (*ds.TreeNode, error) {
 	ti := ds.NewTreeIterator(mg.TreeManager)
-	return mg.findNodeByAbsPathInternal(ti, path)
+	return mg.findTreeNodeByAbsPathInternal(ti, path)
 }
 
-func (mg *DirTreeManager) findNodeByAbsPathInternal(it ds.TreeIterator, path string) (file.NodeInformable, error) {
+func (mg *DirTreeManager) FindNodeByAbsPath(path string) (file.NodeInformable, error) {
+	ti := ds.NewTreeIterator(mg.TreeManager)
+	trNode, err := mg.findTreeNodeByAbsPathInternal(ti, path)
+	if err != nil {
+		return nil, err
+	}
+	return trNode.Info.(file.NodeInformable), nil
+}
+
+func (mg *DirTreeManager) findTreeNodeByAbsPathInternal(it ds.TreeIterator, path string) (*ds.TreeNode, error) {
 	for it.HasNext() {
 		curNode, err := it.Next()
 		got := curNode.Info
@@ -135,7 +144,7 @@ func (mg *DirTreeManager) findNodeByAbsPathInternal(it ds.TreeIterator, path str
 		}
 
 		if got.(file.NodeInformable).GetAbsPath() == path {
-			return got.(file.NodeInformable), nil
+			return curNode, nil
 		}
 	}
 

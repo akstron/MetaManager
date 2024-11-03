@@ -5,61 +5,72 @@ package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/data"
+	"github/akstron/MetaManager/pkg/file"
 	"github/akstron/MetaManager/pkg/utils"
+	"github/akstron/MetaManager/storage"
+	"os"
 	"runtime/debug"
+	"strings"
 
+	"github.com/jedib0t/go-pretty/v6/list"
 	"github.com/spf13/cobra"
 )
 
-// func nodeListTracksInternal() error {
-// 	rw, err := storage.GetRW()
-// 	if err != nil {
-// 		return err
-// 	}
+func nodeListTracksInternal() error {
+	rw, err := storage.GetRW()
+	if err != nil {
+		return err
+	}
 
-// 	root, err := rw.Read()
-// 	if err != nil {
-// 		return err
-// 	}
+	root, err := rw.Read()
+	if err != nil {
+		return err
+	}
 
-// 	dirPath, err := os.Getwd()
-// 	if err != nil {
-// 		return err
-// 	}
+	dirPath, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 
-// 	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
+	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
 
-// 	requiredNode, err := drMg.FindNodeByAbsPath(dirPath)
-// 	if err != nil {
-// 		return err
-// 	}
+	requiredNode, err := drMg.FindTreeNodeByAbsPath(dirPath)
+	if err != nil {
+		return err
+	}
 
-// 	paths := []string{}
+	pr := list.NewWriter()
 
-// 	pr := list.NewWriter()
+	err = ConstructWriter(requiredNode, "", pr)
+	if err != nil {
+		return err
+	}
 
-// 	iter := ds.NewTreeIterator(ds.NewTreeManager(requiredNode))
-// 	for iter.HasNext() {
-// 		got, err := iter.Next()
-// 		if err != nil {
-// 			return err
-// 		}
+	pr.SetStyle(list.StyleConnectedLight)
+	fmt.Println(pr.Render())
 
-// 		info, ok := got.(file.NodeInformable)
-// 		if !ok {
-// 			return &cmderror.Unexpected{}
-// 		}
-// 		paths = append(paths, info.GetAbsPath())
-// 	}
+	return nil
+}
 
-// 	for _, path := range paths {
-// 		pr.AppendItem(path)
-// 	}
-// 	pr.SetStyle(list.StyleDefault)
-// 	fmt.Println(pr.Render())
+func ConstructWriter(curNode *ds.TreeNode, cutPrefix string, wr list.Writer) error {
+	info := curNode.Info.(file.NodeInformable)
+	insPath, _ := strings.CutPrefix(info.GetAbsPath(), cutPrefix+"/")
+	wr.AppendItem(insPath)
 
-// 	return nil
-// }
+	wr.Indent()
+
+	for _, child := range curNode.Children {
+		err := ConstructWriter(child, info.GetAbsPath(), wr)
+		if err != nil {
+			return err
+		}
+	}
+
+	wr.UnIndent()
+	return nil
+}
 
 func nodeListTracks(cmd *cobra.Command, args []string) {
 	var err error
@@ -69,10 +80,10 @@ func nodeListTracks(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	// err = nodeListTracksInternal()
-	// if err != nil {
-	// 	goto finally
-	// }
+	err = nodeListTracksInternal()
+	if err != nil {
+		goto finally
+	}
 
 finally:
 	if err != nil {
