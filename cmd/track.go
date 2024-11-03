@@ -12,6 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func trackInternal(path string) error {
+
+}
+
 func track(cmd *cobra.Command, args []string) {
 	var err error
 
