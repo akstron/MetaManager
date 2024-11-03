@@ -14,30 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/*
-This will be changed based on certain flags -> Currently not implemented
-*/
-func GetRW() (storage.TreeRW, error) {
-	found, root, err := utils.FindMMDirPath()
-	if err != nil {
-		return nil, err
-	}
-
-	if !found {
-		return nil, &cmderror.UninitializedRoot{}
-	}
-
-	/*
-		Check if the data.json is already written.
-		Don't override, if already written
-	*/
-	dataFilePath := filepath.Join(root, utils.DATA_FILE_NAME)
-
-	return storage.NewFileStorageRW(dataFilePath)
-}
-
 func scanInternal(rootDirPath string) error {
-	rw, err := GetRW()
+	rw, err := storage.GetRW()
 	if err != nil {
 		return err
 	}

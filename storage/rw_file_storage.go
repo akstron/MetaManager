@@ -2,8 +2,11 @@ package storage
 
 import (
 	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/file"
+	"github/akstron/MetaManager/pkg/utils"
 	"os"
+	"path/filepath"
 )
 
 type FileStorageRW struct {
@@ -63,4 +66,26 @@ type FileStorageRWFactory struct {
 
 func (factory *FileStorageRWFactory) GetTreeRW() (TreeRW, error) {
 	return NewFileStorageRW(factory.dirFilePath)
+}
+
+/*
+This will be changed based on certain flags -> Currently not implemented
+*/
+func GetRW() (TreeRW, error) {
+	found, root, err := utils.FindMMDirPath()
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+		return nil, &cmderror.UninitializedRoot{}
+	}
+
+	/*
+		Check if the data.json is already written.
+		Don't override, if already written
+	*/
+	dataFilePath := filepath.Join(root, utils.DATA_FILE_NAME)
+
+	return NewFileStorageRW(dataFilePath)
 }

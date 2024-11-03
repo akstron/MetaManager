@@ -11,20 +11,20 @@ type NodeInformable interface {
 	AddTag(string)
 }
 type GeneralNode struct {
-	absPath string
-	entry   fs.FileInfo
+	AbsPath string
+	Entry   fs.FileInfo
 	Tags    []string
 }
 
 func NewGeneralNode(absPath string, entry fs.FileInfo) GeneralNode {
 	return GeneralNode{
-		absPath: absPath,
-		entry:   entry,
+		AbsPath: absPath,
+		Entry:   entry,
 	}
 }
 
 func (gn *GeneralNode) GetAbsPath() string {
-	return gn.absPath
+	return gn.AbsPath
 }
 
 func (gn *GeneralNode) GetTags() []string {

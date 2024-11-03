@@ -17,3 +17,9 @@ type UninitializedRoot struct{}
 func (err *UninitializedRoot) Error() string {
 	return `Current root is uninitialized`
 }
+
+type InvalidOperation struct{}
+
+func (err *InvalidOperation) Error() string {
+	return `Invalid operation`
+}

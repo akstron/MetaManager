@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github/akstron/MetaManager/pkg/config"
 	"github/akstron/MetaManager/pkg/utils"
 	"os"
 	"path/filepath"
@@ -12,7 +11,7 @@ import (
 )
 
 func InitializeRootAndScan(rootPath string) error {
-	err := config.InitRoot(rootPath)
+	err := InitRoot(rootPath)
 	if err != nil {
 		return err
 	}

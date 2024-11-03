@@ -8,6 +8,7 @@ import (
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
+	"github/akstron/MetaManager/storage"
 	"runtime/debug"
 
 	"github.com/jedib0t/go-pretty/v6/list"
@@ -15,7 +16,7 @@ import (
 )
 
 func tagGetInternal(tag string) ([]string, error) {
-	rw, err := GetRW()
+	rw, err := storage.GetRW()
 	if err != nil {
 		return nil, err
 	}

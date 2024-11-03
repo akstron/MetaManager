@@ -51,7 +51,7 @@ func (FileNodeJSONSerializer) InfoUnmarshal(data []byte, serializationInfo strin
 
 func (fn *FileNode) MarshalJSON() ([]byte, error) {
 	obj := NodeJSON{
-		Parent: fn.absPath,
+		Parent: fn.AbsPath,
 		Tags:   fn.Tags,
 	}
 	return json.Marshal(obj)
@@ -63,14 +63,14 @@ func (fn *FileNode) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	fn.absPath = obj.Parent
+	fn.AbsPath = obj.Parent
 	fn.Tags = obj.Tags
 	return nil
 }
 
 func (dn *DirNode) MarshalJSON() ([]byte, error) {
 	obj := NodeJSON{
-		Parent: dn.absPath,
+		Parent: dn.AbsPath,
 		Tags:   dn.Tags,
 	}
 
@@ -83,7 +83,7 @@ func (dn *DirNode) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	dn.absPath = obj.Parent
+	dn.AbsPath = obj.Parent
 	dn.Tags = obj.Tags
 	return nil
 }

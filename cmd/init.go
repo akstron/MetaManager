@@ -6,7 +6,6 @@ package cmd
 import (
 	"fmt"
 	"github/akstron/MetaManager/pkg/cmdmsg"
-	"github/akstron/MetaManager/pkg/config"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,7 @@ func initConfig(cmd *cobra.Command, locs []string) {
 		return
 	}
 
-	err := config.InitRoot(locs[0])
+	err := InitRoot(locs[0])
 	if err != nil {
 		fmt.Println(cmdmsg.ErrorOccurredMessage(), err)
 		return
