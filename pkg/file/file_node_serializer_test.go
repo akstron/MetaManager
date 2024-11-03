@@ -58,7 +58,8 @@ func TestDataSerialization(t *testing.T) {
 	fileCnt := 0
 
 	for it.HasNext() {
-		got, err := it.Next()
+		curNode, err := it.Next()
+		got := curNode.Info
 		require.NoError(t, err)
 
 		switch got.(type) {

@@ -117,7 +117,8 @@ func ValidateNodeCnt(t *testing.T, node *ds.TreeNode, expCnt int) {
 	cnt := 0
 	fmt.Println("Start:")
 	for it.HasNext() {
-		val, err := it.Next()
+		curNode, err := it.Next()
+		val := curNode.Info
 		require.NoError(t, err)
 
 		pr := val.(file.NodeInformable)

@@ -50,7 +50,8 @@ func (mg *DirTreeManager) MergeNode(treeNode *ds.TreeNode) error {
 
 	iter := ds.NewTreeIterator(ds.NewTreeManager(treeNode))
 	for iter.HasNext() {
-		got, err := iter.Next()
+		curNode, err := iter.Next()
+		got := curNode.Info
 		if err != nil {
 			return err
 		}
@@ -127,7 +128,8 @@ func (mg *DirTreeManager) FindNodeByAbsPath(path string) (file.NodeInformable, e
 
 func (mg *DirTreeManager) findNodeByAbsPathInternal(it ds.TreeIterator, path string) (file.NodeInformable, error) {
 	for it.HasNext() {
-		got, err := it.Next()
+		curNode, err := it.Next()
+		got := curNode.Info
 		if err != nil {
 			return nil, err
 		}

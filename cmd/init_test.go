@@ -47,7 +47,8 @@ func TestInit(t *testing.T) {
 		var got *file.DirNode
 
 		for it.HasNext() {
-			info, err := it.Next()
+			curNode, err := it.Next()
+			info := curNode.Info
 			require.NoError(t, err)
 			if dirNode, ok := info.(*file.DirNode); !ok {
 				t.FailNow()

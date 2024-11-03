@@ -1,7 +1,7 @@
 package ds
 
 type TreeIterable interface {
-	Next() (TreeNodeInformable, error)
+	Next() (*TreeNode, error)
 	HasNext() bool
 }
 
@@ -33,7 +33,7 @@ type TreeIterator struct {
 /*
 TODO: Change this to return any.
 */
-func (ti *TreeIterator) Next() (TreeNodeInformable, error) {
+func (ti *TreeIterator) Next() (*TreeNode, error) {
 	if ti.index >= len(ti.nodes) {
 		return nil, nil
 	}
@@ -46,7 +46,7 @@ func (ti *TreeIterator) Next() (TreeNodeInformable, error) {
 	}
 
 	ti.index++
-	data := ti.nodes[ti.index-1].Info
+	data := ti.nodes[ti.index-1]
 	return data, nil
 }
 

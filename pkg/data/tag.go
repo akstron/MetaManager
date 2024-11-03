@@ -86,7 +86,8 @@ func IsPresent(val string, container []string) bool {
 func (*TagManager) iterateAndExtractPathsWithTag(it ds.TreeIterable, tag string) ([]string, error) {
 	result := []string{}
 	for it.HasNext() {
-		got, err := it.Next()
+		curNode, err := it.Next()
+		got := curNode.Info
 		if err != nil {
 			return nil, err
 		}
