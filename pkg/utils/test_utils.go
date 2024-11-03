@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/file"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -108,4 +110,20 @@ func CreateDirStructure(root *MockDir) (string, error) {
 	}
 
 	return topLevelDir.DirName, nil
+}
+
+func ValidateNodeCnt(t *testing.T, node *ds.TreeNode, expCnt int) {
+	it := ds.NewTreeIterator(ds.NewTreeManager(node))
+	cnt := 0
+	for it.HasNext() {
+		val, err := it.Next()
+		require.NoError(t, err)
+
+		pr := val.(file.NodeInformable)
+
+		fmt.Println(pr.GetAbsPath())
+		cnt += 1
+	}
+	fmt.Println()
+	require.Equal(t, expCnt, cnt)
 }

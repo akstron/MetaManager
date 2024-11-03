@@ -66,25 +66,18 @@ func (dn *DirNode) Name() string {
 	return "DIR"
 }
 
-func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
-	entry, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-
+func CreateTreeNodeFromPathAndType(path string, isDir bool) (*ds.TreeNode, error) {
 	var info ds.TreeNodeInformable
-	if entry.IsDir() {
+	if isDir {
 		info = &DirNode{
 			GeneralNode: GeneralNode{
 				AbsPath: path,
-				Entry:   entry,
 			},
 		}
 	} else {
 		info = &FileNode{
 			GeneralNode: GeneralNode{
 				AbsPath: path,
-				Entry:   entry,
 			},
 		}
 	}
@@ -92,4 +85,13 @@ func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
 	return &ds.TreeNode{
 		Info: info,
 	}, nil
+}
+
+func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
+	entry, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return CreateTreeNodeFromPathAndType(path, entry.IsDir())
 }

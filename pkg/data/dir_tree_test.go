@@ -1,4 +1,4 @@
-package filesys
+package data
 
 import (
 	"github/akstron/MetaManager/ds"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTrack(t *testing.T) {
+func TestMergeNodeWithPath(t *testing.T) {
 	dirStructure := &utils.MockDir{
 		DirName: "1_1",
 		Files:   []string{"1_a", "1_b"},
@@ -39,33 +39,18 @@ func TestTrack(t *testing.T) {
 	testExecFunc := func(t *testing.T, root string) {
 		os.Setenv("MM_TEST_ENV_DIR", root)
 
-		loc := filepath.Join(root, "1_a")
-		loc2 := filepath.Join(root, "2_2")
-		loc3 := filepath.Join(root, "2_2")
-		loc3 = loc3 + "*"
+		locs := []string{"1_1", "1_1/1_a", "1_1", "1_1/2_2/3_1/temp", "1_1/2_2/x", "1_1/2_1/2_a", "1_1/2_2/3_1"}
+		outputs := []int{1, 2, 2, 5, 6, 8, 8}
 
-		validateNodeCnt := func(t *testing.T, node *ds.TreeNode, expCnt int) {
-			it := ds.NewTreeIterator(ds.NewTreeManager(node))
-			cnt := 0
-			for it.HasNext() {
-				_, err := it.Next()
-				require.NoError(t, err)
-				cnt += 1
-			}
-			require.Equal(t, expCnt, cnt)
+		dm := NewDirTreeManager(ds.NewTreeManager(nil))
+
+		for i, loc := range locs {
+			absLoc := filepath.Join(root, "..", loc)
+			err := dm.MergeNodeWithPath(absLoc)
+			require.NoError(t, err)
+
+			utils.ValidateNodeCnt(t, dm.Root, outputs[i])
 		}
-
-		node, err := Track(loc)
-		require.NoError(t, err)
-		validateNodeCnt(t, node, 1)
-
-		node, err = Track(loc2)
-		require.NoError(t, err)
-		validateNodeCnt(t, node, 1)
-
-		node, err = Track(loc3)
-		require.NoError(t, err)
-		validateNodeCnt(t, node, 6)
 	}
 	testExectutor := utils.NewDirLifeCycleTester(t, dirStructure, testExecFunc)
 	testExectutor.Execute()
