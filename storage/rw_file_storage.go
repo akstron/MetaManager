@@ -1,7 +1,8 @@
-package data
+package storage
 
 import (
-	"encoding/json"
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/file"
 	"os"
 )
 
@@ -9,8 +10,9 @@ type FileStorageRW struct {
 	dataFilePath string
 }
 
-func (f *FileStorageRW) Read() (*TreeNode, error) {
-	rootNode := &TreeNode{}
+func (f *FileStorageRW) Read() (*ds.TreeNode, error) {
+	rootNode := ds.TreeNode{}
+	rootNode.Serializer = file.FileNodeJSONSerializer{}
 
 	// Read data in bytes from dataFilePath and construct TreeManager
 	serializedNode, err := os.ReadFile(f.dataFilePath)
@@ -18,17 +20,25 @@ func (f *FileStorageRW) Read() (*TreeNode, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(serializedNode, rootNode)
+	// err = json.Unmarshal(serializedNode, &rootNode)
+	err = rootNode.UnmarshalJSON(serializedNode)
 	if err != nil {
 		return nil, err
 	}
 
-	return rootNode, nil
+	return &rootNode, nil
 }
 
-func (f *FileStorageRW) Write(root *TreeNode) error {
+func (f *FileStorageRW) Write(root *ds.TreeNode) error {
+	root.Serializer = file.FileNodeJSONSerializer{}
+
 	// Save the tree structure in data.json
-	serializedNode, err := json.Marshal(root)
+	// serializedNode, err := json.Marshal(root)
+	// if err != nil {
+	// 	return err
+	// }
+
+	serializedNode, err := root.MarshalJSON()
 	if err != nil {
 		return err
 	}

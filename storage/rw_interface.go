@@ -1,4 +1,6 @@
-package data
+package storage
+
+import "github/akstron/MetaManager/ds"
 
 /*
 	In future, we might want to change the backend storage
@@ -8,13 +10,13 @@ package data
 // Fine-grained interface so that we can optimally read trees according
 // to the storage system
 type TreeReader interface {
-	Read() (*TreeNode, error)
+	Read() (*ds.TreeNode, error)
 }
 
 // Fine-grained interface so that we can optimally write trees according
 // to the storage system
 type TreeWriter interface {
-	Write(*TreeNode) error
+	Write(*ds.TreeNode) error
 }
 
 type TreeRW interface {
@@ -22,11 +24,11 @@ type TreeRW interface {
 	TreeWriter
 }
 
-func WriteTree(tw TreeWriter, node *TreeNode) error {
+func WriteTree(tw TreeWriter, node *ds.TreeNode) error {
 	return tw.Write(node)
 }
 
-func ReadTree(tr TreeReader) (*TreeNode, error) {
+func ReadTree(tr TreeReader) (*ds.TreeNode, error) {
 	return tr.Read()
 }
 

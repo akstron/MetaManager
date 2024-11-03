@@ -2,13 +2,16 @@ package data
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/file"
+	"github/akstron/MetaManager/storage"
 )
 
 /*
 Tag related functionalities are implemented here
 */
 type TagManager struct {
-	trMg *TreeManager
+	trMg *DirTreeManager
 }
 
 func NewTagManager() *TagManager {
@@ -20,13 +23,16 @@ TODO: Create a TagReader interface instead
 This way we can decouple tree reading writing from tag
 probably
 */
-func (tgMg *TagManager) Load(r TreeReader) error {
+func (tgMg *TagManager) Load(r storage.TreeReader) error {
 	var err error
 
-	tgMg.trMg = &TreeManager{}
-	tgMg.trMg.Root, err = r.Read()
+	root, err := r.Read()
 	if err != nil {
 		return err
+	}
+
+	tgMg.trMg = &DirTreeManager{
+		TreeManager: ds.NewTreeManager(root),
 	}
 	return nil
 }
@@ -51,7 +57,7 @@ func (tgMg *TagManager) GetTaggedNodes(tag string) ([]string, error) {
 		return nil, fmt.Errorf("invalid operation, tree not loaded")
 	}
 
-	it := NewTreeIterator(tgMg.trMg)
+	it := ds.NewTreeIterator(tgMg.trMg.TreeManager)
 	return tgMg.iterateAndExtractPathsWithTag(&it, tag)
 }
 
@@ -77,7 +83,7 @@ func IsPresent(val string, container []string) bool {
 	return false
 }
 
-func (*TagManager) iterateAndExtractPathsWithTag(it TreeIterable, tag string) ([]string, error) {
+func (*TagManager) iterateAndExtractPathsWithTag(it ds.TreeIterable, tag string) ([]string, error) {
 	result := []string{}
 	for it.HasNext() {
 		got, err := it.Next()
@@ -85,14 +91,14 @@ func (*TagManager) iterateAndExtractPathsWithTag(it TreeIterable, tag string) ([
 			return nil, err
 		}
 
-		nodeTags := got.(NodeInformable).GetTags()
+		nodeTags := got.(file.NodeInformable).GetTags()
 		if IsPresent(tag, nodeTags) {
-			result = append(result, got.(NodeInformable).GetAbsPath())
+			result = append(result, got.(file.NodeInformable).GetAbsPath())
 		}
 	}
 	return result, nil
 }
 
-func (tgMg *TagManager) Save(rw TreeRW) error {
+func (tgMg *TagManager) Save(rw storage.TreeRW) error {
 	return rw.Write(tgMg.trMg.Root)
 }

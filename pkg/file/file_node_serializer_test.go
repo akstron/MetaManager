@@ -1,56 +1,59 @@
-package data
+package file
 
 import (
 	"encoding/json"
+	"github/akstron/MetaManager/ds"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestDataSerialization(t *testing.T) {
-	root := &TreeNode{
-		info: &DirNode{},
-		children: []*TreeNode{
+	root := &ds.TreeNode{
+		Info: &DirNode{},
+		Children: []*ds.TreeNode{
 			{
-				info: &FileNode{},
+				Info: &FileNode{},
 			},
 			{
-				info: &DirNode{},
-				children: []*TreeNode{
+				Info: &DirNode{},
+				Children: []*ds.TreeNode{
 					{
-						info: &DirNode{},
-						children: []*TreeNode{
+						Info: &DirNode{},
+						Children: []*ds.TreeNode{
 							{
-								info: &FileNode{},
+								Info: &FileNode{},
 							},
 						},
 					},
 					{
-						info: &DirNode{},
+						Info: &DirNode{},
 					},
 					{
-						info: &DirNode{},
+						Info: &DirNode{},
 					},
 					{
-						info: &FileNode{},
+						Info: &FileNode{},
 					},
 				},
 			},
 			{
-				info: &FileNode{},
+				Info: &FileNode{},
 			},
 		},
 	}
 
+	root.Serializer = FileNodeJSONSerializer{}
 	serializedNode, err := json.Marshal(root)
 	require.NoError(t, err)
 
-	var extractedRoot TreeNode
+	var extractedRoot ds.TreeNode
+	extractedRoot.Serializer = FileNodeJSONSerializer{}
 	err = json.Unmarshal(serializedNode, &extractedRoot)
 	require.NoError(t, err)
 
-	trMg := NewTreeManager(&extractedRoot)
-	it := NewTreeIterator(trMg)
+	trMg := ds.NewTreeManager(&extractedRoot)
+	it := ds.NewTreeIterator(trMg)
 	dirCnt := 0
 	fileCnt := 0
 

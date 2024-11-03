@@ -1,4 +1,4 @@
-package data
+package file
 
 import "github/akstron/MetaManager/pkg/config"
 

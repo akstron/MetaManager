@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github/akstron/MetaManager/filesys"
 	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
+	"github/akstron/MetaManager/storage"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ import (
 /*
 This will be changed based on certain flags -> Currently not implemented
 */
-func GetRW() (data.TreeRW, error) {
+func GetRW() (storage.TreeRW, error) {
 	found, root, err := utils.FindMMDirPath()
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func GetRW() (data.TreeRW, error) {
 	*/
 	dataFilePath := filepath.Join(root, utils.DATA_FILE_NAME)
 
-	return data.NewFileStorageRW(dataFilePath)
+	return storage.NewFileStorageRW(dataFilePath)
 }
 
 func scanInternal(rootDirPath string) error {
@@ -47,7 +47,7 @@ func scanInternal(rootDirPath string) error {
 		return err
 	}
 
-	err = data.WriteTree(rw, rootNode)
+	err = storage.WriteTree(rw, rootNode)
 	if err != nil {
 		return err
 	}

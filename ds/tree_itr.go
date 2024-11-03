@@ -1,4 +1,4 @@
-package data
+package ds
 
 type TreeIterable interface {
 	Next() (any, error)
@@ -8,11 +8,6 @@ type TreeIterable interface {
 type NodeIterable interface {
 	GetChildren() []NodeIterable
 }
-
-// type FileNodeIterable interface {
-// 	NodeIterable
-// 	GetInfoProvider() NodeInformable
-// }
 
 func NewTreeIterator(tgMg *TreeManager) TreeIterator {
 	tI := TreeIterator{
@@ -45,14 +40,14 @@ func (ti *TreeIterator) Next() (any, error) {
 
 	childNodes := ti.nodes[ti.index].GetChildren()
 	for _, childNode := range childNodes {
-		if childNode != nil && childNode.info != nil {
+		if childNode != nil && childNode.Info != nil {
 			ti.nodes = append(ti.nodes, childNode)
 		}
 	}
 
 	ti.index++
-	fileNodeIterable := ti.nodes[ti.index-1].info
-	return fileNodeIterable, nil
+	data := ti.nodes[ti.index-1].Info
+	return data, nil
 }
 
 func (ti *TreeIterator) HasNext() bool {
