@@ -94,8 +94,10 @@ finally:
 var trackCmd = &cobra.Command{
 	Use:   "track",
 	Short: "Starts tracking a file/folder/all-files-and-folder-at-a-loc",
-	Long:  "Starts tracking a file/folder/all-files-and-folder-at-a-loc",
-	Run:   track,
+	Long: `Starts tracking a file/folder/all-files-and-folder-at-a-loc.
+Please use double quotes when specifying dir with a wild char at end "*".
+Ex: "/home/dev/project*"`,
+	Run: track,
 }
 
 func init() {
