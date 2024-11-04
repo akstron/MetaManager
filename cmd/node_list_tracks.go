@@ -7,12 +7,10 @@ import (
 	"fmt"
 	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/data"
-	"github/akstron/MetaManager/pkg/file"
 	"github/akstron/MetaManager/pkg/utils"
 	"github/akstron/MetaManager/storage"
 	"os"
 	"runtime/debug"
-	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/list"
 	"github.com/spf13/cobra"
@@ -43,7 +41,7 @@ func nodeListTracksInternal() error {
 
 	pr := list.NewWriter()
 
-	err = ConstructWriter(requiredNode, "", pr)
+	err = utils.ConstructTreeWriter(requiredNode, "", pr)
 	if err != nil {
 		return err
 	}
@@ -51,24 +49,6 @@ func nodeListTracksInternal() error {
 	pr.SetStyle(list.StyleConnectedLight)
 	fmt.Println(pr.Render())
 
-	return nil
-}
-
-func ConstructWriter(curNode *ds.TreeNode, cutPrefix string, wr list.Writer) error {
-	info := curNode.Info.(file.NodeInformable)
-	insPath, _ := strings.CutPrefix(info.GetAbsPath(), cutPrefix+"/")
-	wr.AppendItem(insPath)
-
-	wr.Indent()
-
-	for _, child := range curNode.Children {
-		err := ConstructWriter(child, info.GetAbsPath(), wr)
-		if err != nil {
-			return err
-		}
-	}
-
-	wr.UnIndent()
 	return nil
 }
 
@@ -99,7 +79,7 @@ var nodeListTrackCmd = &cobra.Command{
 	Short:   "Lists all the tracked files/dirs from a particular root in a tree structure",
 	Long:    "Lists all the tracked files/dirs from a particular root in a tree structure",
 	Run:     nodeListTracks,
-	Aliases: []string{"ltrack"},
+	Aliases: []string{"ltrack", "ltr"},
 }
 
 func init() {
