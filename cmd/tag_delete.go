@@ -10,39 +10,48 @@ import (
 	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
 	"github/akstron/MetaManager/storage"
-	"runtime/debug"
+	"path/filepath"
 
-	"github.com/jedib0t/go-pretty/v6/list"
 	"github.com/spf13/cobra"
 )
 
-func tagGetInternal(tag string) ([]string, error) {
+func tagDeleteInternal(path, tag string) error {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+
 	rw, err := storage.GetRW()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	root, err := rw.Read()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	tgMg := data.NewTagManager(data.NewDirTreeManager(ds.NewTreeManager(root)))
 
-	paths, err := tgMg.GetTaggedNodes(tag)
+	err = tgMg.DeleteTag(absPath, tag)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return paths, nil
+	err = rw.Write(root)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("tag %s deleted successfully\n", tag)
+
+	return nil
 }
 
-func tagGet(_ *cobra.Command, args []string) {
+func tagDelete(cmd *cobra.Command, args []string) {
 	var err error
-	var paths []string
-	var pr list.Writer
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
@@ -52,44 +61,36 @@ func tagGet(_ *cobra.Command, args []string) {
 		goto finally
 	}
 
-	paths, err = tagGetInternal(args[0])
+	err = tagDeleteInternal(args[0], args[1])
 	if err != nil {
 		goto finally
 	}
 
-	pr = list.NewWriter()
-	for _, path := range paths {
-		pr.AppendItem(path)
-	}
-	pr.SetStyle(list.StyleDefault)
-	fmt.Println(pr.Render())
 finally:
 	if err != nil {
 		fmt.Println(err)
-		// Print stack trace in case of error
-		debug.PrintStack()
 	}
 }
 
-// tagAddCmd represents the tagAdd command
-var tagGetCmd = &cobra.Command{
-	Use:     "tagGet",
-	Short:   "Gets files/dirs with a particular tag",
-	Long:    `Gets files/dirs with a particular tag`,
-	Run:     tagGet,
-	Aliases: []string{"get"},
+// tagDeleteCmd represents the tagDelete command
+var tagDeleteCmd = &cobra.Command{
+	Use:     "tagDelete",
+	Short:   "Deletes tag from a node (i.e., file/dir)",
+	Long:    "Deletes tag from a node (i.e., file/dir)",
+	Aliases: []string{"delete"},
+	Run:     tagDelete,
 }
 
 func init() {
-	tagCmd.AddCommand(tagGetCmd)
+	tagCmd.AddCommand(tagDeleteCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// tagAddCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// tagDeleteCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// tagAddCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// tagDeleteCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

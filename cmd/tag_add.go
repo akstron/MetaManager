@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/data"
 	"github/akstron/MetaManager/pkg/utils"
@@ -20,12 +21,12 @@ func tagAddInternal(args []string) error {
 		return err
 	}
 
-	tgMg := data.NewTagManager()
-
-	err = tgMg.Load(rw)
+	root, err := rw.Read()
 	if err != nil {
 		return err
 	}
+
+	tgMg := data.NewTagManager(data.NewDirTreeManager(ds.NewTreeManager(root)))
 
 	tagFilePath, err := filepath.Abs(args[0])
 	if err != nil {

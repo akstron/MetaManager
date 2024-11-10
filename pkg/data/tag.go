@@ -14,8 +14,10 @@ type TagManager struct {
 	trMg *DirTreeManager
 }
 
-func NewTagManager() *TagManager {
-	return &TagManager{}
+func NewTagManager(trMg *DirTreeManager) *TagManager {
+	return &TagManager{
+		trMg: trMg,
+	}
 }
 
 /*
@@ -23,17 +25,32 @@ TODO: Create a TagReader interface instead
 This way we can decouple tree reading writing from tag
 probably
 */
-func (tgMg *TagManager) Load(r storage.TreeReader) error {
-	var err error
+// func (tgMg *TagManager) Load(r storage.TreeReader) error {
+// 	var err error
 
-	root, err := r.Read()
+// 	root, err := r.Read()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	tgMg.trMg = &DirTreeManager{
+// 		TreeManager: ds.NewTreeManager(root),
+// 	}
+// 	return nil
+// }
+
+func (tgMg *TagManager) DeleteTag(path, tag string) error {
+	nodeInfo, err := tgMg.trMg.FindNodeByAbsPath(path)
 	if err != nil {
 		return err
 	}
 
-	tgMg.trMg = &DirTreeManager{
-		TreeManager: ds.NewTreeManager(root),
+	if nodeInfo == nil {
+		return fmt.Errorf("path: %s not tracked", path)
 	}
+
+	nodeInfo.DeleteTag(tag)
+
 	return nil
 }
 

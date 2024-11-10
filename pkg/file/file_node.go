@@ -11,6 +11,7 @@ type NodeInformable interface {
 	GetAbsPath() string
 	GetTags() []string
 	AddTag(string)
+	DeleteTag(string)
 	SetId(string)
 	GetId() string
 }
@@ -46,6 +47,16 @@ func (gn *GeneralNode) AddTag(tag string) {
 	}
 
 	gn.Tags = append(gn.Tags, tag)
+}
+
+func (gn *GeneralNode) DeleteTag(tag string) {
+	newTagList := []string{}
+	for _, tagLs := range gn.Tags {
+		if tagLs != tag {
+			newTagList = append(newTagList, tagLs)
+		}
+	}
+	gn.Tags = newTagList
 }
 
 func (gn *GeneralNode) SetId(id string) {
