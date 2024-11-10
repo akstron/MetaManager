@@ -33,6 +33,11 @@ func idSetInternal(path, id string) error {
 
 	mg := data.NewDirTreeManager(ds.NewTreeManager(root))
 
+	node, err := mg.FindFileNodeById(id)
+	if err == nil {
+		return fmt.Errorf("id: %s is already set for node %s", id, node.GetAbsPath())
+	}
+
 	pathNode, err := mg.FindNodeByAbsPath(idFilePath)
 	if err != nil {
 		return err
