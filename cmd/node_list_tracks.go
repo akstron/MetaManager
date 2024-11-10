@@ -53,21 +53,30 @@ func nodeListTracksInternal(tagFlag bool) error {
 	return nil
 }
 
+// nodeListTrackCmd represents the nodeListTrack command
+var nodeListTrackCmd = &cobra.Command{
+	Use:     "nodeListTrack",
+	Short:   "Lists all the tracked files/dirs from a particular root in a tree structure",
+	Long:    "Lists all the tracked files/dirs from a particular root in a tree structure",
+	Run:     nodeListTracks,
+	Aliases: []string{"ltrack", "ltr"},
+}
+
 func nodeListTracks(cmd *cobra.Command, args []string) {
 	var err error
-	// var tagFlag bool
+	var tagFlag bool
 
 	_, err = utils.CommonAlreadyInitializedChecks()
 	if err != nil {
 		goto finally
 	}
 
-	// tagFlag, err = cmd.Flags().GetBool("tag")
-	// if err != nil {
-	// 	goto finally
-	// }
+	tagFlag, err = cmd.Flags().GetBool("tag")
+	if err != nil {
+		goto finally
+	}
 
-	err = nodeListTracksInternal(true)
+	err = nodeListTracksInternal(tagFlag)
 	if err != nil {
 		goto finally
 	}
@@ -78,19 +87,10 @@ finally:
 	}
 }
 
-// nodeListTrackCmd represents the nodeListTrack command
-var nodeListTrackCmd = &cobra.Command{
-	Use:     "nodeListTrack",
-	Short:   "Lists all the tracked files/dirs from a particular root in a tree structure",
-	Long:    "Lists all the tracked files/dirs from a particular root in a tree structure",
-	Run:     nodeListTracks,
-	Aliases: []string{"ltrack", "ltr"},
-}
-
 func init() {
 	nodeCmd.AddCommand(nodeListTrackCmd)
 
-	nodeListTagCmd.PersistentFlags().Bool("tag", false, "Use --tag flag to enrich the listing with tags for each node")
+	nodeListTrackCmd.PersistentFlags().BoolP("tag", "t", false, "Use --tag flag to enrich the listing with tags for each node")
 
 	// Here you will define your flags and configuration settings.
 
