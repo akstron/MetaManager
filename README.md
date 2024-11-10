@@ -1,4 +1,4 @@
-# MetaManager/PathTracer
+# MetaManager
 
 ### Use
 
