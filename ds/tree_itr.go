@@ -9,8 +9,8 @@ type NodeIterable interface {
 	GetChildren() []NodeIterable
 }
 
-func NewTreeIterator(tgMg *TreeManager) TreeIterator {
-	tI := TreeIterator{
+func NewTreeIterator(tgMg *TreeManager) *TreeIterator {
+	tI := &TreeIterator{
 		tgMg: tgMg,
 	}
 

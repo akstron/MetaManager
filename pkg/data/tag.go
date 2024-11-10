@@ -58,7 +58,7 @@ func (tgMg *TagManager) GetTaggedNodes(tag string) ([]string, error) {
 	}
 
 	it := ds.NewTreeIterator(tgMg.trMg.TreeManager)
-	return tgMg.iterateAndExtractPathsWithTag(&it, tag)
+	return tgMg.iterateAndExtractPathsWithTag(it, tag)
 }
 
 func (tgMg *TagManager) GetNodeTags(path string) ([]string, error) {

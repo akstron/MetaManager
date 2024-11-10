@@ -73,7 +73,7 @@ finally:
 }
 
 // getCmd represents the get command
-var getCmd = &cobra.Command{
+var idGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Gets the id of the file/dir. Return <empty> if no id set",
 	Long:  "Gets the id of the file/dir. Return <empty> if no id set",
@@ -81,7 +81,7 @@ var getCmd = &cobra.Command{
 }
 
 func init() {
-	idCmd.AddCommand(getCmd)
+	idCmd.AddCommand(idGetCmd)
 
 	// Here you will define your flags and configuration settings.
 

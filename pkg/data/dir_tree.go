@@ -1,6 +1,7 @@
 package data
 
 import (
+	"errors"
 	"fmt"
 	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/cmderror"
@@ -157,6 +158,44 @@ func (mg *DirTreeManager) createPathNodesInternal(curNode *ds.TreeNode, paths []
 	return mg.createPathNodesInternal(nextNode, paths, index+1)
 }
 
+func (mg *DirTreeManager) FindFileNodeById(id string) (file.NodeInformable, error) {
+	node, err := mg.FindTreeNodeById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeInfo, ok := node.Info.(file.NodeInformable)
+	if !ok {
+		return nil, &cmderror.Unexpected{}
+	}
+	return nodeInfo, nil
+}
+
+func (mg *DirTreeManager) FindTreeNodeById(id string) (*ds.TreeNode, error) {
+	ti := ds.NewTreeIterator(mg.TreeManager)
+	return mg.findTreeNodeByIdInternal(id, ti)
+}
+
+func (mg *DirTreeManager) findTreeNodeByIdInternal(id string, it ds.TreeIterable) (*ds.TreeNode, error) {
+	for it.HasNext() {
+		curNode, err := it.Next()
+		got := curNode.Info
+		if err != nil {
+			return nil, err
+		}
+
+		if nodeInfo, ok := got.(file.NodeInformable); ok {
+			if nodeInfo.GetId() == id {
+				return curNode, nil
+			}
+		} else {
+			return nil, errors.New("info not convertiable to NodeInformable")
+		}
+	}
+
+	return nil, errors.New("node not found")
+}
+
 func (mg *DirTreeManager) FindTreeNodeByAbsPath(path string) (*ds.TreeNode, error) {
 	ti := ds.NewTreeIterator(mg.TreeManager)
 	return mg.findTreeNodeByAbsPathInternal(ti, path)
@@ -171,7 +210,7 @@ func (mg *DirTreeManager) FindNodeByAbsPath(path string) (file.NodeInformable, e
 	return trNode.Info.(file.NodeInformable), nil
 }
 
-func (mg *DirTreeManager) findTreeNodeByAbsPathInternal(it ds.TreeIterator, path string) (*ds.TreeNode, error) {
+func (mg *DirTreeManager) findTreeNodeByAbsPathInternal(it ds.TreeIterable, path string) (*ds.TreeNode, error) {
 	for it.HasNext() {
 		curNode, err := it.Next()
 		got := curNode.Info

@@ -1,32 +1,75 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"github/akstron/MetaManager/ds"
+	"github/akstron/MetaManager/pkg/cmderror"
+	"github/akstron/MetaManager/pkg/data"
+	"github/akstron/MetaManager/pkg/utils"
+	"github/akstron/MetaManager/storage"
 
 	"github.com/spf13/cobra"
 )
 
-// jumpCmd represents the jump command
-var jumpCmd = &cobra.Command{
-	Use:   "jump",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+func idJumpInternal(id string) error {
+	rw, err := storage.GetRW()
+	if err != nil {
+		return err
+	}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("jump called")
-	},
+	root, err := rw.Read()
+	if err != nil {
+		return err
+	}
+
+	mg := data.NewDirTreeManager(ds.NewTreeManager(root))
+	fileNode, err := mg.FindFileNodeById(id)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(fileNode.GetAbsPath())
+
+	return nil
+}
+
+func idJump(cmd *cobra.Command, args []string) {
+	var err error
+
+	if len(args) != 1 {
+		err = &cmderror.InvalidNumberOfArguments{}
+		goto finally
+	}
+
+	_, err = utils.CommonAlreadyInitializedChecks()
+	if err != nil {
+		goto finally
+	}
+
+	err = idJumpInternal(args[0])
+	if err != nil {
+		goto finally
+	}
+
+finally:
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+// jumpCmd represents the jump command
+var idJumpCmd = &cobra.Command{
+	Use:   "jump",
+	Short: "Jumps to the dir path or parent of a file",
+	Long:  "Jumps to the dir path or parent of a file",
+	Run:   idJump,
 }
 
 func init() {
-	idCmd.AddCommand(jumpCmd)
+	idCmd.AddCommand(idJumpCmd)
 
 	// Here you will define your flags and configuration settings.
 

@@ -75,7 +75,7 @@ finally:
 }
 
 // setCmd represents the set command
-var setCmd = &cobra.Command{
+var idSetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Sets id for a particular node",
 	Long:  "Sets id for a particular node",
@@ -83,7 +83,7 @@ var setCmd = &cobra.Command{
 }
 
 func init() {
-	idCmd.AddCommand(setCmd)
+	idCmd.AddCommand(idSetCmd)
 
 	// Here you will define your flags and configuration settings.
 
