@@ -11,11 +11,16 @@ type NodeInformable interface {
 	GetAbsPath() string
 	GetTags() []string
 	AddTag(string)
+	SetId(string)
+	GetId() string
 }
 type GeneralNode struct {
 	AbsPath string
 	Entry   fs.FileInfo
 	Tags    []string
+	// User friendly id, which uniquely finds a node
+	// exception: empty string
+	Id string
 }
 
 func NewGeneralNode(absPath string, entry fs.FileInfo) GeneralNode {
@@ -41,6 +46,14 @@ func (gn *GeneralNode) AddTag(tag string) {
 	}
 
 	gn.Tags = append(gn.Tags, tag)
+}
+
+func (gn *GeneralNode) SetId(id string) {
+	gn.Id = id
+}
+
+func (gn *GeneralNode) GetId() string {
+	return gn.Id
 }
 
 type SerializableNode interface {

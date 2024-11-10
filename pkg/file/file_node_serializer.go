@@ -9,6 +9,7 @@ import (
 type NodeJSON struct {
 	Parent string
 	Tags   []string
+	Id     string
 }
 
 type FileNodeJSONSerializer struct {
@@ -53,6 +54,7 @@ func (fn *FileNode) MarshalJSON() ([]byte, error) {
 	obj := NodeJSON{
 		Parent: fn.AbsPath,
 		Tags:   fn.Tags,
+		Id:     fn.Id,
 	}
 	return json.Marshal(obj)
 }
@@ -65,6 +67,7 @@ func (fn *FileNode) UnmarshalJSON(data []byte) error {
 	}
 	fn.AbsPath = obj.Parent
 	fn.Tags = obj.Tags
+	fn.Id = obj.Id
 	return nil
 }
 
@@ -72,6 +75,7 @@ func (dn *DirNode) MarshalJSON() ([]byte, error) {
 	obj := NodeJSON{
 		Parent: dn.AbsPath,
 		Tags:   dn.Tags,
+		Id:     dn.Id,
 	}
 
 	return json.Marshal(&obj)
@@ -85,5 +89,6 @@ func (dn *DirNode) UnmarshalJSON(data []byte) error {
 	}
 	dn.AbsPath = obj.Parent
 	dn.Tags = obj.Tags
+	dn.Id = obj.Id
 	return nil
 }

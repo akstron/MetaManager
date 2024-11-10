@@ -39,8 +39,8 @@ func NewTreePrinterManager(trMg *ds.TreeManager) *TreePrinterManager {
 	}
 }
 
-func getPrinter(ty string, info any) (func(list.Writer) error, error) {
-	var resFunc func(list.Writer) error
+func getPrinter(tys []string, info any) (func(list.Writer) error, error) {
+	var builder file.NodePrinterBuilder
 
 	/*
 		TODO: All the code inside each cases, can be
@@ -49,28 +49,36 @@ func getPrinter(ty string, info any) (func(list.Writer) error, error) {
 
 		But should we do this for a cmd line tool?
 	*/
-	switch ty {
-	case "node":
-		printer, ok := info.(file.NodePrinter)
-		if !ok {
-			return nil, errors.New("info not convertible to NodePrinter")
+	for _, ty := range tys {
+		switch ty {
+		case "node":
+			printer, ok := info.(file.NodePrinter)
+			if !ok {
+				return nil, errors.New("info not convertible to NodePrinter")
+			}
+			builder.AppendPrinter(printer.PrintNode)
+		case "tags":
+			printer, ok := info.(file.TagsPrinter)
+			if !ok {
+				return nil, errors.New("info not convertible to TagsPrinter")
+			}
+			builder.AppendPrinter(printer.PrintTags)
+		case "id":
+			printer, ok := info.(file.IdPrinter)
+			if !ok {
+				return nil, errors.New("info not convertiable to IdPrinter")
+			}
+			builder.AppendPrinter(printer.PrintId)
+		default:
+			return nil, errors.New("unimplemented")
 		}
-		resFunc = printer.PrintNode
-	case "node-tags":
-		printer, ok := info.(file.NodeTagsPrinter)
-		if !ok {
-			return nil, errors.New("info not convertible to NodeTagsPrinter")
-		}
-		resFunc = printer.PrintNodeTags
-	default:
-		return nil, errors.New("unimplemented")
 	}
 
-	return resFunc, nil
+	return builder.Build(), nil
 }
 
-func (mg *TreePrinterManager) TrPrint(ty string) error {
-	err := mg.trPrint(ty, mg.trMg.Root)
+func (mg *TreePrinterManager) TrPrint(tys []string) error {
+	err := mg.trPrint(tys, mg.trMg.Root)
 	if err != nil {
 		return err
 	}
@@ -81,8 +89,8 @@ func (mg *TreePrinterManager) TrPrint(ty string) error {
 	return nil
 }
 
-func (pr *TreePrinterManager) trPrint(ty string, curNode *ds.TreeNode) error {
-	printFunc, err := getPrinter(ty, curNode.Info)
+func (pr *TreePrinterManager) trPrint(tys []string, curNode *ds.TreeNode) error {
+	printFunc, err := getPrinter(tys, curNode.Info)
 	if err != nil {
 		return err
 	}
@@ -95,7 +103,7 @@ func (pr *TreePrinterManager) trPrint(ty string, curNode *ds.TreeNode) error {
 	pr.wr.Indent()
 
 	for _, child := range curNode.Children {
-		err := pr.trPrint(ty, child)
+		err := pr.trPrint(tys, child)
 		if err != nil {
 			return err
 		}

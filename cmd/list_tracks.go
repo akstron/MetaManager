@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func nodeListTracksInternal(tagFlag bool) error {
+func nodeListTracksInternal(tagFlag, idFlag bool) error {
 	rw, err := storage.GetRW()
 	if err != nil {
 		return err
@@ -40,12 +40,15 @@ func nodeListTracksInternal(tagFlag bool) error {
 
 	pr := printer.NewTreePrinterManager(ds.NewTreeManager(requiredNode))
 
-	typeOfPrinting := "node"
+	typesOfPrinting := []string{"node"}
+	if idFlag {
+		typesOfPrinting = append(typesOfPrinting, "id")
+	}
 	if tagFlag {
-		typeOfPrinting = "node-tags"
+		typesOfPrinting = append(typesOfPrinting, "tags")
 	}
 
-	err = pr.TrPrint(typeOfPrinting)
+	err = pr.TrPrint(typesOfPrinting)
 	if err != nil {
 		return err
 	}
@@ -64,7 +67,7 @@ var nodeListTrackCmd = &cobra.Command{
 
 func nodeListTracks(cmd *cobra.Command, args []string) {
 	var err error
-	var tagFlag bool
+	var tagFlag, idFlag bool
 
 	_, err = utils.CommonAlreadyInitializedChecks()
 	if err != nil {
@@ -76,7 +79,12 @@ func nodeListTracks(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	err = nodeListTracksInternal(tagFlag)
+	idFlag, err = cmd.Flags().GetBool("id")
+	if err != nil {
+		goto finally
+	}
+
+	err = nodeListTracksInternal(tagFlag, idFlag)
 	if err != nil {
 		goto finally
 	}
@@ -90,7 +98,8 @@ finally:
 func init() {
 	nodeCmd.AddCommand(nodeListTrackCmd)
 
-	nodeListTrackCmd.PersistentFlags().BoolP("tag", "t", false, "Use --tag flag to enrich the listing with tags for each node")
+	nodeListTrackCmd.PersistentFlags().BoolP("tag", "t", false, "flag to enrich the listing with tags for each node")
+	nodeListTrackCmd.PersistentFlags().BoolP("id", "i", false, "flag to enrich the listing with id for each node")
 
 	// Here you will define your flags and configuration settings.
 
