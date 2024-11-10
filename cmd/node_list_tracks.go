@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"github/akstron/MetaManager/ds"
 	"github/akstron/MetaManager/pkg/data"
+	"github/akstron/MetaManager/pkg/printer"
 	"github/akstron/MetaManager/pkg/utils"
 	"github/akstron/MetaManager/storage"
 	"os"
 	"runtime/debug"
 
-	"github.com/jedib0t/go-pretty/v6/list"
 	"github.com/spf13/cobra"
 )
 
@@ -39,15 +39,12 @@ func nodeListTracksInternal() error {
 		return err
 	}
 
-	pr := list.NewWriter()
+	pr := printer.NewTreePrinterManager(ds.NewTreeManager(requiredNode))
 
-	err = utils.ConstructTreeWriter(requiredNode, "", pr)
+	err = pr.TrPrint("node")
 	if err != nil {
 		return err
 	}
-
-	pr.SetStyle(list.StyleConnectedLight)
-	fmt.Println(pr.Render())
 
 	return nil
 }
