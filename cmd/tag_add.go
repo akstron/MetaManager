@@ -10,7 +10,6 @@ import (
 	"github/akstron/MetaManager/pkg/utils"
 	"github/akstron/MetaManager/storage"
 	"path/filepath"
-	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
@@ -68,8 +67,6 @@ func tagAdd(cmd *cobra.Command, args []string) {
 finally:
 	if err != nil {
 		fmt.Println(err)
-		// Print stack trace in case of error
-		debug.PrintStack()
 	} else {
 		fmt.Println("Tag added successfully")
 	}

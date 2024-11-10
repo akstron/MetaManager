@@ -76,7 +76,7 @@ var nodeListTagCmd = &cobra.Command{
 	Short:   "List tags of a file/dir",
 	Long:    "List tags of a file/dir",
 	Run:     nodeList,
-	Aliases: []string{"lt"},
+	Aliases: []string{"lt", "tag"},
 }
 
 func init() {

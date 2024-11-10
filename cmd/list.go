@@ -11,9 +11,10 @@ import (
 
 // nodeCmd represents the node command
 var nodeCmd = &cobra.Command{
-	Use:   "node",
-	Short: "Node : {file | dir} cmds",
-	Long:  "Node : {file | dir} cmds",
+	Use:     "node",
+	Short:   "Node : {file | dir} cmds",
+	Long:    "Node : {file | dir} cmds",
+	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("node called")
 	},

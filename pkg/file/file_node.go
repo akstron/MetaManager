@@ -34,6 +34,12 @@ func (gn *GeneralNode) GetTags() []string {
 }
 
 func (gn *GeneralNode) AddTag(tag string) {
+	for _, lsTag := range gn.Tags {
+		if lsTag == tag {
+			return
+		}
+	}
+
 	gn.Tags = append(gn.Tags, tag)
 }
 

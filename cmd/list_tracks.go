@@ -59,7 +59,7 @@ var nodeListTrackCmd = &cobra.Command{
 	Short:   "Lists all the tracked files/dirs from a particular root in a tree structure",
 	Long:    "Lists all the tracked files/dirs from a particular root in a tree structure",
 	Run:     nodeListTracks,
-	Aliases: []string{"ltrack", "ltr"},
+	Aliases: []string{"ltrack", "ltr", "tr", "tracks"},
 }
 
 func nodeListTracks(cmd *cobra.Command, args []string) {
