@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/file"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -119,17 +118,18 @@ func ValidateNodeCnt(t *testing.T, node *ds.TreeNode, expCnt int) {
 	}
 	it := ds.NewTreeIterator(ds.NewTreeManager(node))
 	cnt := 0
-	fmt.Println("Start:")
+	// fmt.Println("Start:")
 	for it.HasNext() {
-		curNode, err := it.Next()
-		val := curNode.Info
+		// curNode, err := it.Next()
+		_, err := it.Next()
+		// val := curNode.Info
 		require.NoError(t, err)
 
-		pr := val.(file.NodeInformable)
+		// pr := val.(file.NodeInformable)
 
-		fmt.Println(pr.GetAbsPath())
+		// fmt.Println(pr.GetAbsPath())
 		cnt += 1
 	}
-	fmt.Println("End")
+	// fmt.Println("End")
 	require.Equal(t, expCnt, cnt)
 }

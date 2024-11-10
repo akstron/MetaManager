@@ -16,7 +16,7 @@ func InitializeRootAndScan(rootPath string) error {
 		return err
 	}
 
-	err = scanInternal(rootPath)
+	err = trackInternal(rootPath + "*")
 	if err != nil {
 		return err
 	}

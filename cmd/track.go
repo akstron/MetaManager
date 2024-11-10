@@ -17,20 +17,6 @@ import (
 )
 
 func trackInternal(pathExp string) error {
-	// found, rootDirPath, err := utils.FindRootDir()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if !found {
-	// 	return &cmderror.Unexpected{}
-	// }
-
-	// isPathExpInRootDir := strings.HasPrefix(pathExp, rootDirPath)
-	// if !isPathExpInRootDir {
-	// 	return &cmderror.InvalidOperation{}
-	// }
-
 	rw, err := storage.GetRW()
 	if err != nil {
 		return err
