@@ -41,14 +41,18 @@ func (gn *GeneralNode) PrintNodeTags(wr list.Writer) error {
 	}
 
 	wr.Indent()
-	wr.AppendItem("<tags>")
-	wr.Indent()
+	if len(gn.Tags) > 0 {
+		wr.AppendItem("<tags>")
+		wr.Indent()
+	}
 
 	for _, tag := range gn.Tags {
 		wr.AppendItem(tag)
 	}
 
-	wr.UnIndent()
+	if len(gn.Tags) > 0 {
+		wr.UnIndent()
+	}
 	wr.UnIndent()
 
 	return nil

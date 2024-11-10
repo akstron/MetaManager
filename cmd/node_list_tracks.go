@@ -11,12 +11,11 @@ import (
 	"github/akstron/MetaManager/pkg/utils"
 	"github/akstron/MetaManager/storage"
 	"os"
-	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
 
-func nodeListTracksInternal() error {
+func nodeListTracksInternal(tagFlag bool) error {
 	rw, err := storage.GetRW()
 	if err != nil {
 		return err
@@ -41,7 +40,12 @@ func nodeListTracksInternal() error {
 
 	pr := printer.NewTreePrinterManager(ds.NewTreeManager(requiredNode))
 
-	err = pr.TrPrint("node")
+	typeOfPrinting := "node"
+	if tagFlag {
+		typeOfPrinting = "node-tags"
+	}
+
+	err = pr.TrPrint(typeOfPrinting)
 	if err != nil {
 		return err
 	}
@@ -51,13 +55,19 @@ func nodeListTracksInternal() error {
 
 func nodeListTracks(cmd *cobra.Command, args []string) {
 	var err error
+	// var tagFlag bool
 
 	_, err = utils.CommonAlreadyInitializedChecks()
 	if err != nil {
 		goto finally
 	}
 
-	err = nodeListTracksInternal()
+	// tagFlag, err = cmd.Flags().GetBool("tag")
+	// if err != nil {
+	// 	goto finally
+	// }
+
+	err = nodeListTracksInternal(true)
 	if err != nil {
 		goto finally
 	}
@@ -65,8 +75,6 @@ func nodeListTracks(cmd *cobra.Command, args []string) {
 finally:
 	if err != nil {
 		fmt.Println(err)
-		// Print stack trace in case of error
-		debug.PrintStack()
 	}
 }
 
@@ -81,6 +89,8 @@ var nodeListTrackCmd = &cobra.Command{
 
 func init() {
 	nodeCmd.AddCommand(nodeListTrackCmd)
+
+	nodeListTagCmd.PersistentFlags().Bool("tag", false, "Use --tag flag to enrich the listing with tags for each node")
 
 	// Here you will define your flags and configuration settings.
 

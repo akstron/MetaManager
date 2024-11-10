@@ -39,21 +39,16 @@ func NewTreePrinterManager(trMg *ds.TreeManager) *TreePrinterManager {
 	}
 }
 
-func (mg *TreePrinterManager) TrPrint(ty string) error {
-	err := mg.trPrint(ty, mg.trMg.Root)
-	if err != nil {
-		return err
-	}
-
-	mg.wr.SetStyle(list.StyleConnectedLight)
-	fmt.Println(mg.wr.Render())
-
-	return nil
-}
-
 func getPrinter(ty string, info any) (func(list.Writer) error, error) {
 	var resFunc func(list.Writer) error
 
+	/*
+		TODO: All the code inside each cases, can be
+		encapsulated in a PrinterGenerator func and this
+		can be stored for each "ty" in a map
+
+		But should we do this for a cmd line tool?
+	*/
 	switch ty {
 	case "node":
 		printer, ok := info.(file.NodePrinter)
@@ -72,6 +67,18 @@ func getPrinter(ty string, info any) (func(list.Writer) error, error) {
 	}
 
 	return resFunc, nil
+}
+
+func (mg *TreePrinterManager) TrPrint(ty string) error {
+	err := mg.trPrint(ty, mg.trMg.Root)
+	if err != nil {
+		return err
+	}
+
+	mg.wr.SetStyle(list.StyleConnectedLight)
+	fmt.Println(mg.wr.Render())
+
+	return nil
 }
 
 func (pr *TreePrinterManager) trPrint(ty string, curNode *ds.TreeNode) error {
