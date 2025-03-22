@@ -113,8 +113,8 @@ func searchNodeInternal(regexPattern string) error {
 // searchNodeCmd represents the searchNode command
 var searchNodeCmd = &cobra.Command{
 	Use:   "searchNode",
-	Short: "Find any file/directory in the save tree using regex",
-	Long: `Find any file/directory in the save tree using regex. This prints the found nodes
+	Short: "Find any file/directory in the saved tree using regex",
+	Long: `Find any file/directory in the saved tree using regex. This prints the found nodes
 in a tree fashion.`,
 	Run:     searchNode,
 	Aliases: []string{"node"},
