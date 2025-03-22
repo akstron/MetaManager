@@ -16,7 +16,7 @@ var nodeCmd = &cobra.Command{
 	Long:    "Node : {file | dir} cmds",
 	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("node called")
+		fmt.Println("Use --help for get list of commands under node")
 	},
 }
 

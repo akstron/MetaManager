@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 /*
@@ -106,4 +108,12 @@ func IsMMDirPresent(path string) (bool, error) {
 
 func SaveToFile(location string, data []byte) error {
 	return os.WriteFile(location, data, 0666)
+}
+
+func GetCurNodeFromAbsPath(absPath string) (string, error) {
+	temp := strings.Split(absPath, "/")
+	if len(temp) == 0 {
+		return "", fmt.Errorf("can't print path: %s", absPath)
+	}
+	return temp[len(temp)-1], nil
 }

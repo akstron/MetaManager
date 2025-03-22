@@ -69,7 +69,8 @@ func (factory *FileStorageRWFactory) GetTreeRW() (TreeRW, error) {
 }
 
 /*
-This will be changed based on certain flags -> Currently not implemented
+TODO: This will be changed based on certain flags -> Currently not implemented
+Example: user can set if it wants to use filesystem or some database implementation
 */
 func GetRW() (TreeRW, error) {
 	found, root, err := utils.FindMMDirPath()

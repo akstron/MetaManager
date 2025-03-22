@@ -1,11 +1,35 @@
 package file
 
 import (
-	"fmt"
-	"strings"
+	"github/akstron/MetaManager/pkg/utils"
 
 	"github.com/jedib0t/go-pretty/v6/list"
 )
+
+type GetPrintStringFunc func(info any) (string, error)
+
+type NodeExtraInfoPrinter struct {
+	GetPrintString GetPrintStringFunc
+}
+
+func NewNodeExtraInfoPrinter(f GetPrintStringFunc) *NodeExtraInfoPrinter {
+	return &NodeExtraInfoPrinter{
+		GetPrintString: f,
+	}
+}
+
+func (np *NodeExtraInfoPrinter) GetPrinter(info any) (PrinterFunc, error) {
+	return func(wr list.Writer) error {
+		str, err := np.GetPrintString(info)
+		if err != nil {
+			return err
+		}
+
+		wr.AppendItem(str)
+
+		return nil
+	}, nil
+}
 
 type TagsPrinter interface {
 	PrintTags(list.Writer) error
@@ -41,16 +65,8 @@ func (nb *NodePrinterBuilder) Build() func(list.Writer) error {
 	}
 }
 
-func getCurNodeFromAbsPath(absPath string) (string, error) {
-	temp := strings.Split(absPath, "/")
-	if len(temp) == 0 {
-		return "", fmt.Errorf("can't print path: %s", absPath)
-	}
-	return temp[len(temp)-1], nil
-}
-
 func (gn *GeneralNode) PrintNode(wr list.Writer) error {
-	curNodeName, err := getCurNodeFromAbsPath(gn.AbsPath)
+	curNodeName, err := utils.GetCurNodeFromAbsPath(gn.AbsPath)
 	if err != nil {
 		return err
 	}
@@ -88,27 +104,3 @@ func (gn *GeneralNode) PrintId(wr list.Writer) error {
 
 	return nil
 }
-
-// func (gn *GeneralNode) PrintNodeTags(wr list.Writer) error {
-// 	err := gn.PrintNode(wr)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	wr.Indent()
-// 	if len(gn.Tags) > 0 {
-// 		wr.AppendItem("<tags>")
-// 		wr.Indent()
-// 	}
-
-// 	for _, tag := range gn.Tags {
-// 		wr.AppendItem(tag)
-// 	}
-
-// 	if len(gn.Tags) > 0 {
-// 		wr.UnIndent()
-// 	}
-// 	wr.UnIndent()
-
-// 	return nil
-// }

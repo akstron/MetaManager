@@ -7,6 +7,7 @@ import (
 	"github/akstron/MetaManager/pkg/cmderror"
 	"github/akstron/MetaManager/pkg/file"
 	"path/filepath"
+	"regexp"
 	"slices"
 )
 
@@ -18,6 +19,69 @@ func NewDirTreeManager(trMg *ds.TreeManager) *DirTreeManager {
 	return &DirTreeManager{
 		TreeManager: trMg,
 	}
+}
+
+// We probably don't want to update anything on the original extracted tree nodes
+// So, we create a copy of each tree node and buildTree out of it
+func BuildCopyTree(rootPath string, treeNodes []*ds.TreeNode) (*DirTreeManager, error) {
+	copyTreeNodes := []*ds.TreeNode{}
+	rootNode, err := file.CreateTreeNodeFromPath(rootPath)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, node := range treeNodes {
+		copyNode := *node
+		copyTreeNodes = append(copyTreeNodes, &copyNode)
+	}
+
+	return buildTree(rootNode, copyTreeNodes)
+}
+
+// builds a tree out of the nodes
+func buildTree(rootNode *ds.TreeNode, nodes []*ds.TreeNode) (*DirTreeManager, error) {
+	drMg := NewDirTreeManager(ds.NewTreeManager(rootNode))
+	for _, node := range nodes {
+		err := drMg.MergeNode(node)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return drMg, nil
+}
+
+func (mg *DirTreeManager) FindTreeNodesByRegex(expression string) ([]*ds.TreeNode, error) {
+	it := ds.NewTreeIterator(mg.TreeManager)
+	// iterate over all the node and find node with given regex
+	return mg.findTreeNodesByRegexInternal(expression, it)
+}
+
+func (mg *DirTreeManager) findTreeNodesByRegexInternal(pattern string, it ds.TreeIterable) ([]*ds.TreeNode, error) {
+	nodesFound := []*ds.TreeNode{}
+
+	for it.HasNext() {
+		curNode, err := it.Next()
+		got := curNode.Info
+		if err != nil {
+			return nil, err
+		}
+
+		nodeInfo, ok := got.(file.NodeInformable)
+		if !ok {
+			return nil, errors.New("info not convertiable to NodeInformable")
+		}
+
+		match, err := regexp.MatchString(pattern, nodeInfo.GetAbsPath())
+		if err != nil {
+			return nil, err
+		}
+
+		if match {
+			nodesFound = append(nodesFound, curNode)
+		}
+	}
+
+	return nodesFound, nil
 }
 
 func (mg *DirTreeManager) SplitChildrenFromPath(path string) error {
@@ -56,6 +120,7 @@ func (mg *DirTreeManager) SplitNodeWithPath(path string) error {
 	return nil
 }
 
+// Given a path of any form /a/b/c -> this will create tree out of this path and attach it to the tree managed by mg
 func (mg *DirTreeManager) MergeNodeWithPath(path string) error {
 	treeNode, err := file.CreateTreeNodeFromPath(path)
 	if err != nil {

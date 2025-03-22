@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-/*Get common node information without casting using NodeInformable interface*/
+/*Common node operations which should be provided by all nodes*/
 type NodeInformable interface {
 	GetAbsPath() string
 	GetTags() []string

@@ -89,6 +89,61 @@ func (mg *TreePrinterManager) TrPrint(tys []string) error {
 	return nil
 }
 
+type PrintingContext interface {
+	GetPrinter(info any) (file.PrinterFunc, error)
+}
+
+func (mg *TreePrinterManager) TrPrintV2(prContexts []PrintingContext) error {
+	err := mg.trPrint2(prContexts, mg.trMg.Root)
+	if err != nil {
+		return err
+	}
+
+	mg.wr.SetStyle(list.StyleConnectedLight)
+	fmt.Println(mg.wr.Render())
+
+	return nil
+}
+
+func getPrinter2(prContexts []PrintingContext, info any) (func(list.Writer) error, error) {
+	var builder file.NodePrinterBuilder
+
+	for _, pr := range prContexts {
+		curPrinter, err := pr.GetPrinter(info)
+		if err != nil {
+			return nil, err
+		}
+		builder.AppendPrinter(curPrinter)
+	}
+
+	return builder.Build(), nil
+}
+
+func (pr *TreePrinterManager) trPrint2(prContexts []PrintingContext, curNode *ds.TreeNode) error {
+	printFunc, err := getPrinter2(prContexts, curNode.Info)
+	if err != nil {
+		return err
+	}
+
+	err = printFunc(pr.wr)
+	if err != nil {
+		return err
+	}
+
+	pr.wr.Indent()
+
+	for _, child := range curNode.Children {
+		err := pr.trPrint2(prContexts, child)
+		if err != nil {
+			return err
+		}
+	}
+
+	pr.wr.UnIndent()
+
+	return nil
+}
+
 func (pr *TreePrinterManager) trPrint(tys []string, curNode *ds.TreeNode) error {
 	printFunc, err := getPrinter(tys, curNode.Info)
 	if err != nil {
