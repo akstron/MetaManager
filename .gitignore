@@ -27,3 +27,6 @@ testing
 todolist.txt
 MetaManager
 mm
+client_secret.json
+credentials.json
+token.json
