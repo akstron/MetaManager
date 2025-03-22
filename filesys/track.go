@@ -38,5 +38,6 @@ func trackRec(path string) (*ds.TreeNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ScanDirectory(rootDirPath)
+	// TODO: Remove ScanDirectory
+	return ScanDirectoryV2(rootDirPath)
 }
