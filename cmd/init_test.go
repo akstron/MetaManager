@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/file"
-	"github/akstron/MetaManager/pkg/utils"
-	"github/akstron/MetaManager/storage"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/heroku/self/MetaManager/internal/storage"
 	"os"
 	"testing"
 

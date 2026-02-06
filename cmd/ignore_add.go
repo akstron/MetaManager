@@ -5,9 +5,9 @@ package cmd
 
 import (
 	"fmt"
-	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/config"
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/config"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"path/filepath"
 
 	"github.com/spf13/cobra"

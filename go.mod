@@ -1,4 +1,4 @@
-module github/akstron/MetaManager
+module github.com/heroku/self/MetaManager
 
 go 1.23.0
 

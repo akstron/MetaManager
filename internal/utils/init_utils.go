@@ -1,6 +1,6 @@
 package utils
 
-import "github/akstron/MetaManager/pkg/cmderror"
+import "github.com/heroku/self/MetaManager/internal/cmderror"
 
 // Did not used it as it may hide errors
 func CommonInitChecks() (bool, error) {

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
 	"sort"

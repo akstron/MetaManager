@@ -1,7 +1,7 @@
 package file
 
 import (
-	"github/akstron/MetaManager/ds"
+	"github.com/heroku/self/MetaManager/internal/ds"
 	"io/fs"
 	"os"
 )

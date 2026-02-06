@@ -1,11 +1,11 @@
 package filesys
 
 import (
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/config"
-	"github/akstron/MetaManager/pkg/file"
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/config"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
 )

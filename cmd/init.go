@@ -1,38 +1,31 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
-	"github/akstron/MetaManager/pkg/cmdmsg"
 
+	"github.com/heroku/self/MetaManager/internal/cmdmsg"
 	"github.com/spf13/cobra"
 )
 
-func initConfig(cmd *cobra.Command, locs []string) {
-	if len(locs) != 1 {
-		fmt.Println(cmdmsg.ErrorOccurredMessage(), " The command expects only 1 argument")
-		return
-	}
-
-	err := InitRoot(locs[0])
-	if err != nil {
-		fmt.Println(cmdmsg.ErrorOccurredMessage(), err)
-		return
-	}
-
-	fmt.Println("Root path initialized successfully")
-}
-
-// initCmd represents the init command
+// initCmd represents the init command.
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initializes the root of the directory which you want manage",
-	Long:  `Same as short description`,
-	Run:   initConfig,
+	Short: "Initializes the root of the directory which you want to manage",
+	Long:  `Initializes the root of the directory which you want to manage.`,
+	RunE:  runInit,
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+}
+
+func runInit(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("%s the command expects exactly one argument", cmdmsg.ErrorOccurredMessage())
+	}
+	if err := InitRoot(args[0]); err != nil {
+		return fmt.Errorf("%s: %w", cmdmsg.ErrorOccurredMessage(), err)
+	}
+	fmt.Println("Root path initialized successfully")
+	return nil
 }

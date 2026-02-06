@@ -1,8 +1,8 @@
 package filesys
 
 import (
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/config"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/config"
 )
 
 /*

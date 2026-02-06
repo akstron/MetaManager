@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
 )
@@ -23,7 +23,7 @@ func generateIgnoreFilePath() (string, error) {
 		return "", err
 	}
 
-	ignoreFilePath, err := filepath.Abs(rootPath + "/" + utils.IGNORE_FILE_NAME)
+	ignoreFilePath, err := filepath.Abs(rootPath + "/" + utils.IgnoreFileName)
 	if err != nil {
 		return "", err
 	}

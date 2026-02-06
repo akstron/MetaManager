@@ -1,11 +1,7 @@
+// Package storage provides tree read/write backends (e.g. file-based) for MetaManager.
 package storage
 
-import "github/akstron/MetaManager/ds"
-
-/*
-	In future, we might want to change the backend storage
-	system, that's why we have an interface
-*/
+import "github.com/heroku/self/MetaManager/internal/ds"
 
 // Fine-grained interface so that we can optimally read trees according
 // to the storage system

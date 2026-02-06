@@ -2,7 +2,7 @@ package file
 
 import (
 	"encoding/json"
-	"github/akstron/MetaManager/ds"
+	"github.com/heroku/self/MetaManager/internal/ds"
 	"testing"
 
 	"github.com/stretchr/testify/require"

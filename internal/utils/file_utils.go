@@ -81,7 +81,7 @@ func findMMDirPathInternal(path string) (bool, string, error) {
 		}
 
 		if isPresent {
-			mmDirPath, err := filepath.Abs(path + "/" + MM_DIR_NAME)
+			mmDirPath, err := filepath.Abs(path + "/" + MMDirName)
 			if err != nil {
 				return false, "", err
 			}
@@ -99,7 +99,7 @@ func findMMDirPathInternal(path string) (bool, string, error) {
 }
 
 func IsMMDirPresent(path string) (bool, error) {
-	mmDirPath, err := filepath.Abs(path + "/" + MM_DIR_NAME)
+	mmDirPath, err := filepath.Abs(path + "/" + MMDirName)
 	if err != nil {
 		return false, err
 	}

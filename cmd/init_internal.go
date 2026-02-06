@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
-	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/config"
-	dataPkg "github/akstron/MetaManager/pkg/data"
-	"github/akstron/MetaManager/pkg/utils"
-	"github/akstron/MetaManager/storage"
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/config"
+	dataPkg "github.com/heroku/self/MetaManager/internal/data"
+	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/heroku/self/MetaManager/internal/storage"
 	"os"
 	"path/filepath"
 )
@@ -27,7 +27,7 @@ func InitRoot(loc string) error {
 		return err
 	}
 
-	configDirPath := filepath.Join(dirPath, utils.MM_DIR_NAME)
+	configDirPath := filepath.Join(dirPath, utils.MMDirName)
 
 	/*
 		If the current directory is already initialized which is indicated
@@ -46,21 +46,21 @@ func InitRoot(loc string) error {
 		return err
 	}
 
-	configFilePath := filepath.Join(configDirPath, utils.CONFIG_FILE_NAME)
+	configFilePath := filepath.Join(configDirPath, utils.ConfigFileName)
 
 	_, err = os.Create(configFilePath)
 	if err != nil {
 		return err
 	}
 
-	configFileIgnorePath := filepath.Join(configDirPath, utils.IGNORE_FILE_NAME)
+	configFileIgnorePath := filepath.Join(configDirPath, utils.IgnoreFileName)
 
 	_, err = os.Create(configFileIgnorePath)
 	if err != nil {
 		return err
 	}
 
-	dataFilePath := filepath.Join(configDirPath, utils.DATA_FILE_NAME)
+	dataFilePath := filepath.Join(configDirPath, utils.DataFileName)
 	_, err = os.Create(dataFilePath)
 	if err != nil {
 		return err

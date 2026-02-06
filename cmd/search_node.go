@@ -6,12 +6,12 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/data"
-	"github/akstron/MetaManager/pkg/file"
-	"github/akstron/MetaManager/pkg/printer"
-	"github/akstron/MetaManager/pkg/utils"
-	"github/akstron/MetaManager/storage"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/data"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/printer"
+	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/heroku/self/MetaManager/internal/storage"
 	"os"
 	"regexp"
 

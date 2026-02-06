@@ -5,12 +5,12 @@ package cmd
 
 import (
 	"fmt"
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/filesys"
-	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/data"
-	"github/akstron/MetaManager/pkg/utils"
-	"github/akstron/MetaManager/storage"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/filesys"
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/data"
+	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/heroku/self/MetaManager/internal/storage"
 	"runtime/debug"
 
 	"github.com/spf13/cobra"

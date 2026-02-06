@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/cmderror"
-	"github/akstron/MetaManager/pkg/file"
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
 )
@@ -86,7 +86,7 @@ func GetRW() (TreeRW, error) {
 		Check if the data.json is already written.
 		Don't override, if already written
 	*/
-	dataFilePath := filepath.Join(root, utils.DATA_FILE_NAME)
+	dataFilePath := filepath.Join(root, utils.DataFileName)
 
 	return NewFileStorageRW(dataFilePath)
 }

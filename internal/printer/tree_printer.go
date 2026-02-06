@@ -3,8 +3,8 @@ package printer
 import (
 	"errors"
 	"fmt"
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/file"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
 
 	"github.com/jedib0t/go-pretty/v6/list"
 )

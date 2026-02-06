@@ -1,8 +1,8 @@
 package data
 
 import (
-	"github/akstron/MetaManager/ds"
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
 	"testing"

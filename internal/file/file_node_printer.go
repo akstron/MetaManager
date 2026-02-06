@@ -1,7 +1,7 @@
 package file
 
 import (
-	"github/akstron/MetaManager/pkg/utils"
+	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/jedib0t/go-pretty/v6/list"
 )

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github/akstron/MetaManager/ds"
+	"github.com/heroku/self/MetaManager/internal/ds"
 	"math/rand"
 	"os"
 	"path/filepath"

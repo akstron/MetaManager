@@ -3,7 +3,7 @@ package file
 import (
 	"encoding/json"
 	"fmt"
-	"github/akstron/MetaManager/ds"
+	"github.com/heroku/self/MetaManager/internal/ds"
 )
 
 type NodeJSON struct {
