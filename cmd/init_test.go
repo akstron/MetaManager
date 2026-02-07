@@ -32,11 +32,14 @@ func TestInit(t *testing.T) {
 	}
 
 	testExecFunc := func(t *testing.T, root string) {
-		os.Setenv("MM_TEST_ENV_DIR", root)
-		err := InitRoot(root)
+		os.Setenv("MM_TEST_CONTEXT_DIR", root)
+		os.Setenv("MM_CONTEXT", "default")
+		defer os.Unsetenv("MM_TEST_CONTEXT_DIR")
+		defer os.Unsetenv("MM_CONTEXT")
+		err := EnsureAppDataDir("default")
 		require.NoError(t, err)
 
-		rw, err := storage.GetRW()
+		rw, err := storage.GetRW("default")
 		require.NoError(t, err)
 
 		node, err := rw.Read()

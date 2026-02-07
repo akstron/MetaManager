@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
@@ -22,8 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func trackInternal(pathExp string) error {
-	rw, err := storage.GetRW()
+func trackInternal(ctxName, pathExp string) error {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -33,8 +34,20 @@ func trackInternal(pathExp string) error {
 		return err
 	}
 
-	// When in gdrive context, resolve relative paths (no "gdrive:/", no leading "/") against Drive cwd.
-	if isTrackGDriveByContext(pathExp) && !file.IsGDrivePath(pathExp) && (pathExp == "" || pathExp[0] != '/') {
+	// Resolve "." and relative paths before any logic.
+	if pathExp == "." || pathExp == "" {
+		if isTrackGDriveByContext(pathExp) {
+			cwd, _ := defaultStore.GetGDriveCwd()
+			pathExp = contextrepo.ResolveGDrivePath(cwd, ".")
+		} else {
+			abs, err := filepath.Abs(".")
+			if err != nil {
+				return fmt.Errorf("resolve current directory: %w", err)
+			}
+			pathExp = abs
+		}
+	} else if isTrackGDriveByContext(pathExp) && !file.IsGDrivePath(pathExp) && pathExp[0] != '/' {
+		// Other relative paths in gdrive context: resolve against Drive cwd.
 		cwd, _ := defaultStore.GetGDriveCwd()
 		pathExp = contextrepo.ResolveGDrivePath(cwd, pathExp)
 	}
@@ -99,18 +112,23 @@ func trackGDrive(pathExp string) (*ds.TreeNode, error) {
 
 func track(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	err = trackInternal(args[0])
+	err = trackInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}

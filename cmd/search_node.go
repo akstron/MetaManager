@@ -20,8 +20,13 @@ import (
 
 func searchNode(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
@@ -31,7 +36,7 @@ func searchNode(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	err = searchNodeInternal(args[0])
+	err = searchNodeInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}
@@ -42,8 +47,8 @@ finally:
 	}
 }
 
-func searchNodeInternal(regexPattern string) error {
-	rw, err := storage.GetRW()
+func searchNodeInternal(ctxName, regexPattern string) error {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}

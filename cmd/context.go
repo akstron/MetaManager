@@ -59,6 +59,15 @@ var contextListCmd = &cobra.Command{
 	RunE:  runContextList,
 }
 
+// contextDeleteCmd removes a context from contexts.json.
+var contextDeleteCmd = &cobra.Command{
+	Use:   "delete <name>",
+	Short: "Delete a context by name",
+	Long:  `Removes the context from contexts.json. If it was the current context, the current context is cleared.`,
+	Args:  cobra.ExactArgs(1),
+	RunE:  runContextDelete,
+}
+
 var contextCreateType string
 
 func init() {
@@ -67,6 +76,7 @@ func init() {
 	contextCmd.AddCommand(contextCreateCmd)
 	contextCmd.AddCommand(contextGetCmd)
 	contextCmd.AddCommand(contextListCmd)
+	contextCmd.AddCommand(contextDeleteCmd)
 	contextCreateCmd.Flags().StringVarP(&contextCreateType, "type", "t", "", "Context type: local or gdrive (required)")
 	if err := contextCreateCmd.MarkFlagRequired("type"); err != nil {
 		fmt.Fprintln(os.Stderr, "context create: mark flag required:", err)
@@ -91,7 +101,11 @@ func runContextCreate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Context %q (%s) created\n", strings.ToLower(strings.TrimSpace(args[0])), contextType)
+	name := strings.ToLower(strings.TrimSpace(args[0]))
+	if err := EnsureAppDataDir(name); err != nil {
+		return fmt.Errorf("ensure app data dir for context: %w", err)
+	}
+	fmt.Printf("Context %q (%s) created\n", name, contextType)
 	return nil
 }
 
@@ -134,6 +148,15 @@ func runContextList(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func runContextDelete(cmd *cobra.Command, args []string) error {
+	name := strings.ToLower(strings.TrimSpace(args[0]))
+	if err := defaultStore.Delete(name); err != nil {
+		return err
+	}
+	fmt.Printf("Context %q deleted\n", name)
+	return nil
+}
+
 // GetContexts returns all context entries from the default store. Returns nil, nil if the file does not exist.
 func GetContexts() ([]filesys.ContextEntry, error) {
 	return defaultStore.LoadContexts()
@@ -147,4 +170,16 @@ func GetContext() (string, error) {
 // GetContextType returns the type for the given context name from the default store.
 func GetContextType(name string) (string, error) {
 	return defaultStore.GetContextType(name)
+}
+
+// getContextRequired returns the current context name, or error if unset (for commands that need a context).
+func getContextRequired() (string, error) {
+	name, err := GetContext()
+	if err != nil {
+		return "", err
+	}
+	if name == "" {
+		return "", fmt.Errorf("no context set; use 'context set <name>' first")
+	}
+	return name, nil
 }

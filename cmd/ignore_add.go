@@ -18,8 +18,14 @@ func ignoreAdd(cmd *cobra.Command, args []string) {
 	var igMg *config.IgnoreManager
 	pathToAdd := args[0]
 	var absPathToAdd string
+	var ctxName, mmDirPath string
+	var isInitialized bool
 
-	isInitialized, err := utils.IsRootInitialized()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	isInitialized, err = utils.IsRootInitialized(ctxName)
 	if err != nil {
 		goto finally
 	}
@@ -29,7 +35,11 @@ func ignoreAdd(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	igMg, err = config.NewIgnoreManager()
+	mmDirPath, err = utils.CommonAlreadyInitializedChecks(ctxName)
+	if err != nil {
+		goto finally
+	}
+	igMg, err = config.NewIgnoreManager(mmDirPath)
 	if err != nil {
 		goto finally
 	}

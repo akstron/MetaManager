@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -8,35 +9,27 @@ import (
 )
 
 func TestFindMMDirPath(t *testing.T) {
-	dirStructure := &MockDir{
-		DirName: "1_1",
-		Files:   []string{"1_a", "1_b"},
-		Dirs: []*MockDir{
-			{
-				DirName: "2_1",
-				Files:   []string{"2_a"},
-			},
-			{
-				DirName: "2_2",
-				Dirs: []*MockDir{
-					{
-						DirName: "3_1",
-					},
-				},
-			},
-			{
-				DirName: ".mm",
-			},
-		},
-	}
+	dir := t.TempDir()
+	os.Setenv("MM_TEST_CONTEXT_DIR", dir)
+	defer os.Unsetenv("MM_TEST_CONTEXT_DIR")
 
-	testExecFunc := func(t *testing.T, root string) {
-		curWD := filepath.Join(root, "2_2", "3_1")
-		found, path, err := findMMDirPathInternal(curWD)
-		require.NoError(t, err)
-		require.True(t, found)
-		require.Equal(t, path, filepath.Join(root, ".mm"))
-	}
-	testExectutor := NewDirLifeCycleTester(t, dirStructure, testExecFunc)
-	testExectutor.Execute()
+	parentDir, err := GetAppDataDir()
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(dir, MMDirName), parentDir)
+
+	appDir, err := GetAppDataDirForContext("myctx")
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(dir, MMDirName, "myctx"), appDir)
+
+	// Before creating .mm/myctx, FindMMDirPath returns false
+	found, path, err := FindMMDirPath("myctx")
+	require.NoError(t, err)
+	require.False(t, found)
+	require.Empty(t, path)
+
+	require.NoError(t, os.MkdirAll(appDir, 0755))
+	found, path, err = FindMMDirPath("myctx")
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, appDir, path)
 }

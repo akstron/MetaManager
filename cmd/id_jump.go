@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func idJumpInternal(id string) error {
-	rw, err := storage.GetRW()
+func idJumpInternal(ctxName, id string) error {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -38,18 +38,23 @@ func idJumpInternal(id string) error {
 
 func idJump(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	err = idJumpInternal(args[0])
+	err = idJumpInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}

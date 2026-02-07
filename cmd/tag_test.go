@@ -11,17 +11,12 @@ import (
 )
 
 func InitializeRootAndScan(rootPath string) error {
-	err := InitRoot(rootPath)
-	if err != nil {
+	os.Setenv("MM_TEST_CONTEXT_DIR", rootPath)
+	os.Setenv("MM_CONTEXT", "default")
+	if err := EnsureAppDataDir("default"); err != nil {
 		return err
 	}
-
-	err = trackInternal(rootPath + "*")
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return trackInternal("default", rootPath+"*")
 }
 
 func TestTagAddAndGetE2E(t *testing.T) {
@@ -45,7 +40,8 @@ func TestTagAddAndGetE2E(t *testing.T) {
 	}
 
 	testExecFunc := func(t *testing.T, root string) {
-		os.Setenv("MM_TEST_ENV_DIR", root)
+		os.Setenv("MM_TEST_CONTEXT_DIR", root)
+		defer os.Unsetenv("MM_TEST_CONTEXT_DIR")
 		err := InitializeRootAndScan(root)
 		require.NoError(t, err)
 
@@ -57,23 +53,23 @@ func TestTagAddAndGetE2E(t *testing.T) {
 		tags := []string{"hello", "world", "2", "random"}
 		locs := []string{loc, loc2, loc3, loc4}
 		for i, l := range locs {
-			err := tagAddInternal([]string{l, tags[i]})
+			err := tagAddInternal("default", []string{l, tags[i]})
 			require.NoError(t, err)
 		}
 
-		err = tagAddInternal([]string{loc3, "Hello World"})
+		err = tagAddInternal("default", []string{loc3, "Hello World"})
 		require.NoError(t, err)
-		err = tagAddInternal([]string{loc, "Hello World"})
+		err = tagAddInternal("default", []string{loc, "Hello World"})
 		require.NoError(t, err)
 
 		for i, l := range locs {
-			result, err := tagGetInternal(tags[i])
+			result, err := tagGetInternal("default", tags[i])
 			require.NoError(t, err)
 			require.Equal(t, 1, len(result))
 			require.Equal(t, l, result[0])
 		}
 
-		result, err := tagGetInternal("Hello World")
+		result, err := tagGetInternal("default", "Hello World")
 		require.NoError(t, err)
 		require.Equal(t, 2, len(result))
 		sort.Strings(result)

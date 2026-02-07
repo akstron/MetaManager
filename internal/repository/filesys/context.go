@@ -45,6 +45,7 @@ type ContextRepository interface {
 	AddContext(name, contextType string) error
 	SetCurrent(name string) error
 	Create(name, contextType string) error
+	Delete(name string) error
 	GetContext() (string, error)
 	GetContextType(name string) (string, error)
 	GetGDriveCwd() (string, error)
@@ -192,6 +193,48 @@ func (s *ContextRepositoryImpl) Create(name, contextType string) error {
 		return fmt.Errorf("context %q already exists", name)
 	}
 	return s.AddContext(name, contextType)
+}
+
+// Delete removes a context from contexts.json. If it was the current context (from file), the context file is cleared.
+func (s *ContextRepositoryImpl) Delete(name string) error {
+	name = strings.ToLower(strings.TrimSpace(name))
+	if name == "" {
+		return fmt.Errorf("context name cannot be empty")
+	}
+	entries, err := s.LoadContexts()
+	if err != nil {
+		return err
+	}
+	if !s.contextExists(entries, name) {
+		return fmt.Errorf("context %q not found", name)
+	}
+	newEntries := make([]ContextEntry, 0, len(entries)-1)
+	for _, e := range entries {
+		if e.Name != name {
+			newEntries = append(newEntries, e)
+		}
+	}
+	path, err := s.ContextsJSONPath()
+	if err != nil {
+		return err
+	}
+	if err := utils.WriteJSON(path, ContextsFile{Contexts: newEntries}, true); err != nil {
+		return err
+	}
+	current, err := s.GetContext()
+	if err != nil {
+		return err
+	}
+	if current == name {
+		ctxPath, err := s.ContextFilePath()
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(ctxPath, []byte(""), 0600); err != nil {
+			return fmt.Errorf("clear current context file: %w", err)
+		}
+	}
+	return nil
 }
 
 // GetContext returns the current context name (env var overrides file). Returns ("", nil) if unset.

@@ -129,7 +129,8 @@ func scanDirV2(sc ScannableNode, scCxt ScannableCxt) (*ds.TreeNode, error) {
 	return curTreeNode, nil
 }
 
-func ScanDirectory(dirPath string) (*ds.TreeNode, error) {
+// ScanDirectory scans a directory; mmDirPath is the .mm/<context> dir for ignore rules (can be "").
+func ScanDirectory(dirPath, mmDirPath string) (*ds.TreeNode, error) {
 	present, err := utils.IsFilePresent(dirPath)
 	if err != nil {
 		return nil, err
@@ -151,7 +152,7 @@ func ScanDirectory(dirPath string) (*ds.TreeNode, error) {
 
 	topDir := &file.DirNode{GeneralNode: file.NewGeneralNode(dirPathAbs, root)}
 
-	igMg, err := config.NewIgnoreManager()
+	igMg, err := config.NewIgnoreManager(mmDirPath)
 	if err != nil {
 		return nil, err
 	}

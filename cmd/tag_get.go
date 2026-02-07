@@ -16,8 +16,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func tagGetInternal(tag string) ([]string, error) {
-	rw, err := storage.GetRW()
+func tagGetInternal(ctxName, tag string) ([]string, error) {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return nil, err
 	}
@@ -41,18 +41,23 @@ func tagGet(_ *cobra.Command, args []string) {
 	var err error
 	var paths []string
 	var pr list.Writer
+	var ctxName string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	paths, err = tagGetInternal(args[0])
+	paths, err = tagGetInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}

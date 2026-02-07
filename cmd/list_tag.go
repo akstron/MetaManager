@@ -16,8 +16,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func nodeListInternal(path string) ([]string, error) {
-	rw, err := storage.GetRW()
+func nodeListInternal(ctxName, path string) ([]string, error) {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return nil, err
 	}
@@ -45,18 +45,23 @@ func nodeListInternal(path string) ([]string, error) {
 func nodeList(cmd *cobra.Command, args []string) {
 	var err error
 	var tags []string
+	var ctxName string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	tags, err = nodeListInternal(args[0])
+	tags, err = nodeListInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}

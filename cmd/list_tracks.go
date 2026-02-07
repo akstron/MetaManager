@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func nodeListTracksInternal(tagFlag, idFlag bool) error {
-	rw, err := storage.GetRW()
+func nodeListTracksInternal(ctxName string, tagFlag, idFlag bool) error {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,13 @@ var nodeListTrackCmd = &cobra.Command{
 func nodeListTracks(cmd *cobra.Command, args []string) {
 	var err error
 	var tagFlag, idFlag bool
+	var ctxName string
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
@@ -84,7 +89,7 @@ func nodeListTracks(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	err = nodeListTracksInternal(tagFlag, idFlag)
+	err = nodeListTracksInternal(ctxName, tagFlag, idFlag)
 	if err != nil {
 		goto finally
 	}

@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func HandleSubtreeRemoval(pathExp string, drMg *data.DirTreeManager) error {
+func HandleSubtreeRemoval(ctxName, pathExp string, drMg *data.DirTreeManager) error {
 	if pathExp[len(pathExp)-1] == '*' {
 		dirPath := pathExp[0 : len(pathExp)-1]
 		dirPathAbs, err := filepath.Abs(dirPath)
@@ -36,7 +36,7 @@ func HandleSubtreeRemoval(pathExp string, drMg *data.DirTreeManager) error {
 		return err
 	}
 
-	found, rootDirPathAbs, err := utils.FindRootDir()
+	found, rootDirPathAbs, err := utils.FindRootDir(ctxName)
 	if err != nil {
 		return err
 	}
@@ -57,8 +57,8 @@ func HandleSubtreeRemoval(pathExp string, drMg *data.DirTreeManager) error {
 	return nil
 }
 
-func untrackInternal(pathExp string) error {
-	rw, err := storage.GetRW()
+func untrackInternal(ctxName, pathExp string) error {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func untrackInternal(pathExp string) error {
 
 	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
 
-	err = HandleSubtreeRemoval(pathExp, drMg)
+	err = HandleSubtreeRemoval(ctxName, pathExp, drMg)
 	if err != nil {
 		return err
 	}
@@ -85,18 +85,23 @@ func untrackInternal(pathExp string) error {
 
 func untrack(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	err = untrackInternal(args[0])
+	err = untrackInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}

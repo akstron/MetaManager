@@ -16,43 +16,30 @@ type IgnoreManager struct {
 	ignoreFilePath string
 }
 
-// Shift this to utils
-func generateIgnoreFilePath() (string, error) {
-	rootPath, err := utils.GetAbsMMDirPath()
-	if err != nil {
-		return "", err
-	}
-
-	ignoreFilePath, err := filepath.Abs(rootPath + "/" + utils.IgnoreFileName)
-	if err != nil {
-		return "", err
-	}
-
-	return ignoreFilePath, nil
-}
-
-func NewIgnoreManager() (*IgnoreManager, error) {
-	var err error
+// NewIgnoreManager creates an IgnoreManager for the given .mm directory path (e.g. .mm/<contextName>/).
+// If mmDirPath is empty, returns a manager with empty ignore list (no file path).
+func NewIgnoreManager(mmDirPath string) (*IgnoreManager, error) {
 	ig := &IgnoreManager{}
-	ig.ignoreFilePath, err = generateIgnoreFilePath()
+	if mmDirPath == "" {
+		return ig, nil
+	}
+	ignoreFilePath, err := filepath.Abs(filepath.Join(mmDirPath, utils.IgnoreFileName))
 	if err != nil {
 		return nil, err
 	}
+	ig.ignoreFilePath = ignoreFilePath
 	return ig, nil
 }
 
 func (mg *IgnoreManager) Save() error {
+	if mg.ignoreFilePath == "" {
+		return nil
+	}
 	content, err := json.Marshal(mg.Data)
 	if err != nil {
 		return err
 	}
-
-	err = os.WriteFile(mg.ignoreFilePath, content, 0666)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(mg.ignoreFilePath, content, 0666)
 }
 
 func (mg *IgnoreManager) Add(path string) error {
@@ -66,15 +53,12 @@ Implement caching here - Don't load again, if already loaded
 Can make ForceLoad(), if we deliberately want to load
 */
 func (mg *IgnoreManager) Load() error {
+	if mg.ignoreFilePath == "" {
+		return nil
+	}
 	content, err := os.ReadFile(mg.ignoreFilePath)
 	if err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(content, &mg.Data)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return json.Unmarshal(content, &mg.Data)
 }

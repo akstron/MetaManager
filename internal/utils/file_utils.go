@@ -7,6 +7,42 @@ import (
 	"strings"
 )
 
+// GetBaseDir returns the directory for app data (context file, .mm, etc.).
+// Uses MM_TEST_CONTEXT_DIR in tests, otherwise the executable's directory.
+func GetBaseDir() (string, error) {
+	if d := os.Getenv("MM_TEST_CONTEXT_DIR"); d != "" {
+		return d, nil
+	}
+	execPath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("executable path: %w", err)
+	}
+	return filepath.Dir(execPath), nil
+}
+
+// GetAppDataDir returns the path to the shared .mm parent directory (next to the executable).
+// Per-context data lives under .mm/<contextName>/.
+func GetAppDataDir() (string, error) {
+	base, err := GetBaseDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(base, MMDirName), nil
+}
+
+// GetAppDataDirForContext returns the path to the .mm directory for the given context (e.g. .mm/mydrive/).
+// The directory may not exist until the context is created.
+func GetAppDataDirForContext(contextName string) (string, error) {
+	if contextName == "" {
+		return "", fmt.Errorf("context name cannot be empty")
+	}
+	parent, err := GetAppDataDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(parent, contextName), nil
+}
+
 /*
 All the mentioned utils can also be used for directories,
 as dirs are more or less dirs
@@ -22,18 +58,21 @@ func IsFilePresent(dirPath string) (bool, error) {
 	return false, err
 }
 
-func IsRootInitialized() (bool, error) {
-	dirPath := "./.mm"
-	return IsFilePresent(dirPath)
+// IsRootInitialized returns true if the .mm directory for the given context exists.
+func IsRootInitialized(contextName string) (bool, error) {
+	if contextName == "" {
+		return false, nil
+	}
+	appDir, err := GetAppDataDirForContext(contextName)
+	if err != nil {
+		return false, err
+	}
+	return IsFilePresent(appDir)
 }
 
-/*
-This gives the root path of .mm directory
-TODO: Change and test this. Use FindMMDirPath to get path
-*/
-func GetAbsMMDirPath() (string, error) {
-	dirPath := "./.mm"
-	return filepath.Abs(dirPath)
+// GetAbsMMDirPath returns the absolute path to the .mm directory for the given context.
+func GetAbsMMDirPath(contextName string) (string, error) {
+	return GetAppDataDirForContext(contextName)
 }
 
 func IsFileEmpty(filePath string) (bool, error) {
@@ -45,65 +84,33 @@ func IsFileEmpty(filePath string) (bool, error) {
 	return stat.Size() == 0, nil
 }
 
-func FindRootDir() (bool, string, error) {
-	found, mmDirPath, err := FindMMDirPath()
+// FindRootDir returns the parent of the .mm dir for the context (the "root" path). Used for path checks.
+func FindRootDir(contextName string) (bool, string, error) {
+	found, mmDirPath, err := FindMMDirPath(contextName)
 	if err != nil {
 		return false, "", err
 	}
-
 	if !found {
 		return false, "", nil
 	}
-
 	return true, filepath.Join(mmDirPath, ".."), nil
 }
 
-func FindMMDirPath() (bool, string, error) {
-	testEnvDir := os.Getenv("MM_TEST_ENV_DIR")
-	wd, err := os.Getwd()
-	if testEnvDir != "" {
-		wd = testEnvDir
+// FindMMDirPath returns the .mm directory path for the given context (.mm/<contextName>/).
+// If contextName is empty or the directory does not exist, returns (false, "", nil).
+func FindMMDirPath(contextName string) (bool, string, error) {
+	if contextName == "" {
+		return false, "", nil
 	}
+	appDir, err := GetAppDataDirForContext(contextName)
 	if err != nil {
 		return false, "", err
 	}
-	return findMMDirPathInternal(wd)
-}
-
-/*
-Recursively searches the parents for .mm directory
-*/
-func findMMDirPathInternal(path string) (bool, string, error) {
-	for {
-		isPresent, err := IsMMDirPresent(path)
-		if err != nil {
-			return false, "", err
-		}
-
-		if isPresent {
-			mmDirPath, err := filepath.Abs(path + "/" + MMDirName)
-			if err != nil {
-				return false, "", err
-			}
-			return true, mmDirPath, nil
-		}
-
-		newPath := filepath.Dir(path)
-		if path == newPath {
-			break
-		}
-		path = newPath
+	exists, err := IsFilePresent(appDir)
+	if err != nil || !exists {
+		return false, "", err
 	}
-
-	return false, "", nil
-}
-
-func IsMMDirPresent(path string) (bool, error) {
-	mmDirPath, err := filepath.Abs(path + "/" + MMDirName)
-	if err != nil {
-		return false, err
-	}
-	return IsFilePresent(mmDirPath)
+	return true, appDir, nil
 }
 
 func SaveToFile(location string, data []byte) error {

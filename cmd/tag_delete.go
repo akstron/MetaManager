@@ -15,13 +15,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func tagDeleteInternal(path, tag string) error {
+func tagDeleteInternal(ctxName, path, tag string) error {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
 
-	rw, err := storage.GetRW()
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -50,18 +50,23 @@ func tagDeleteInternal(path, tag string) error {
 
 func tagDelete(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
 	if len(args) != 2 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	err = tagDeleteInternal(args[0], args[1])
+	err = tagDeleteInternal(ctxName, args[0], args[1])
 	if err != nil {
 		goto finally
 	}

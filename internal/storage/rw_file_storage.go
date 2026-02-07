@@ -68,25 +68,18 @@ func (factory *FileStorageRWFactory) GetTreeRW() (TreeRW, error) {
 	return NewFileStorageRW(factory.dirFilePath)
 }
 
-/*
-TODO: This will be changed based on certain flags -> Currently not implemented
-Example: user can set if it wants to use filesystem or some database implementation
-*/
-func GetRW() (TreeRW, error) {
-	found, root, err := utils.FindMMDirPath()
+// GetRW returns a TreeRW for the given context's .mm directory. contextName must be non-empty and the .mm/<contextName> dir must exist.
+func GetRW(contextName string) (TreeRW, error) {
+	if contextName == "" {
+		return nil, &cmderror.UninitializedRoot{}
+	}
+	found, root, err := utils.FindMMDirPath(contextName)
 	if err != nil {
 		return nil, err
 	}
-
 	if !found {
 		return nil, &cmderror.UninitializedRoot{}
 	}
-
-	/*
-		Check if the data.json is already written.
-		Don't override, if already written
-	*/
 	dataFilePath := filepath.Join(root, utils.DataFileName)
-
 	return NewFileStorageRW(dataFilePath)
 }

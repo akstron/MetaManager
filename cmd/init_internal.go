@@ -2,14 +2,78 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/config"
 	dataPkg "github.com/heroku/self/MetaManager/internal/data"
-	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
 	"github.com/heroku/self/MetaManager/internal/storage"
-	"os"
-	"path/filepath"
+	"github.com/heroku/self/MetaManager/internal/utils"
 )
+
+// EnsureAppDataDir creates the .mm/<contextName> directory for the given context (next to the executable
+// or under MM_TEST_CONTEXT_DIR) with config.json, data.json, and ignore.json if it does not exist. Idempotent.
+func EnsureAppDataDir(contextName string) error {
+	if contextName == "" {
+		return fmt.Errorf("context name cannot be empty")
+	}
+	parentDir, err := utils.GetAppDataDir()
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(parentDir, 0755); err != nil {
+		return err
+	}
+	appDir, err := utils.GetAppDataDirForContext(contextName)
+	if err != nil {
+		return err
+	}
+	exists, err := utils.IsFilePresent(appDir)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+	if err := os.Mkdir(appDir, 0755); err != nil {
+		return err
+	}
+	baseDir, err := utils.GetBaseDir()
+	if err != nil {
+		return err
+	}
+
+	configFilePath := filepath.Join(appDir, utils.ConfigFileName)
+	cfg := config.Config{RootPath: baseDir}
+	data, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(configFilePath, data, 0666); err != nil {
+		return err
+	}
+
+	ignorePath := filepath.Join(appDir, utils.IgnoreFileName)
+	if err := os.WriteFile(ignorePath, []byte("[]"), 0666); err != nil {
+		return err
+	}
+
+	emptyRoot := &ds.TreeNode{
+		Info:       &file.DirNode{GeneralNode: file.GeneralNode{AbsPath: baseDir}},
+		Children:   nil,
+		Serializer: file.FileNodeJSONSerializer{},
+	}
+	dataFilePath := filepath.Join(appDir, utils.DataFileName)
+	rw, err := storage.NewFileStorageRW(dataFilePath)
+	if err != nil {
+		return err
+	}
+	return rw.Write(emptyRoot)
+}
 
 /*
 Initialize the root directory named '.mm', with a config file named '.mmconfig' in it,
@@ -80,7 +144,7 @@ func InitRoot(loc string) error {
 		return err
 	}
 
-	rw, err := storage.GetRW()
+	rw, err := storage.NewFileStorageRW(dataFilePath)
 	if err != nil {
 		return err
 	}

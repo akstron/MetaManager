@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/heroku/self/MetaManager/internal/utils"
-	"github.com/heroku/self/MetaManager/internal/storage"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/require"
 )
@@ -37,8 +38,11 @@ func TestTrackCmd(t *testing.T) {
 	}
 
 	testExecFunc := func(t *testing.T, root string) {
-		os.Setenv("MM_TEST_ENV_DIR", root)
-		err := InitRoot(root)
+		os.Setenv("MM_TEST_CONTEXT_DIR", root)
+		os.Setenv("MM_CONTEXT", "default")
+		defer os.Unsetenv("MM_TEST_CONTEXT_DIR")
+		defer os.Unsetenv("MM_CONTEXT")
+		err := EnsureAppDataDir("default")
 		require.NoError(t, err)
 
 		loc := filepath.Join(root, "1_a")
@@ -54,14 +58,14 @@ func TestTrackCmd(t *testing.T) {
 		}
 
 		outputs := []int{
-			2, 3, 8, 8, 8, 15, /*due to .mm creation*/
+			2, 3, 8, 8, 8, 16, /*includes .mm/default created for context*/
 		}
 
-		rw, err := storage.GetRW()
+		rw, err := storage.GetRW("default")
 		require.NoError(t, err)
 
 		for i, loc := range locs {
-			err = trackInternal(loc)
+			err = trackInternal("default", loc)
 			require.NoError(t, err)
 
 			node, err := rw.Read()

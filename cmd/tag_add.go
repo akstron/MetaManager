@@ -15,8 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func tagAddInternal(args []string) error {
-	rw, err := storage.GetRW()
+func tagAddInternal(ctxName string, args []string) error {
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -49,18 +49,23 @@ func tagAddInternal(args []string) error {
 
 func tagAdd(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
 	if len(args) != 2 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	err = tagAddInternal(args)
+	err = tagAddInternal(ctxName, args)
 	if err != nil {
 		goto finally
 	}

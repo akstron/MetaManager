@@ -175,9 +175,9 @@ func runGDriveList(cmd *cobra.Command, args []string) error {
 	fmt.Println("---")
 	for _, e := range entries {
 		if e.IsFolder {
-			fmt.Printf("  %s/  [id: %s]\n", e.Name, e.Id)
+			fmt.Printf("  %s/\n", e.Name)
 		} else {
-			fmt.Printf("  %s  [id: %s]\n", e.Name, e.Id)
+			fmt.Printf("  %s\n", e.Name)
 		}
 	}
 	if len(entries) == 0 {
@@ -265,9 +265,9 @@ func runGDriveLs(cmd *cobra.Command, args []string) error {
 	fmt.Println("---")
 	for _, e := range entries {
 		if e.IsFolder {
-			fmt.Printf("  %s/  [id: %s]\n", e.Name, e.Id)
+			fmt.Printf("  %s/\n", e.Name)
 		} else {
-			fmt.Printf("  %s  [id: %s]\n", e.Name, e.Id)
+			fmt.Printf("  %s\n", e.Name)
 		}
 	}
 	if len(entries) == 0 {

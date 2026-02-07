@@ -2,29 +2,26 @@ package utils
 
 import "github.com/heroku/self/MetaManager/internal/cmderror"
 
-// Did not used it as it may hide errors
-func CommonInitChecks() (bool, error) {
-	isInitialized, err := IsRootInitialized()
+// CommonInitChecks returns true if the given context's .mm directory exists.
+func CommonInitChecks(contextName string) (bool, error) {
+	isInitialized, err := IsRootInitialized(contextName)
 	if err != nil {
 		return false, err
 	}
-
-	if !isInitialized {
-		return false, nil
-	}
-
-	return true, nil
+	return isInitialized, nil
 }
 
-func CommonAlreadyInitializedChecks() (string, error) {
-	isPresent, dirPath, err := FindMMDirPath()
+// CommonAlreadyInitializedChecks returns the .mm directory path for the given context, or error if not set/uninitialized.
+func CommonAlreadyInitializedChecks(contextName string) (string, error) {
+	if contextName == "" {
+		return "", &cmderror.UninitializedRoot{}
+	}
+	isPresent, dirPath, err := FindMMDirPath(contextName)
 	if err != nil {
 		return "", err
 	}
-
 	if !isPresent {
 		return "", &cmderror.UninitializedRoot{}
 	}
-
 	return dirPath, nil
 }

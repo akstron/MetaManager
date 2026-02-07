@@ -15,13 +15,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func getIdInternal(path string) error {
+func getIdInternal(ctxName, path string) error {
 	idFilePath, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
 
-	rw, err := storage.GetRW()
+	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -50,18 +50,23 @@ func getIdInternal(path string) error {
 
 func getId(cmd *cobra.Command, args []string) {
 	var err error
+	var ctxName string
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
 		goto finally
 	}
 
-	_, err = utils.CommonAlreadyInitializedChecks()
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
 	if err != nil {
 		goto finally
 	}
 
-	err = getIdInternal(args[0])
+	err = getIdInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}
