@@ -3,9 +3,11 @@ module github.com/heroku/self/MetaManager
 go 1.23.0
 
 require (
+	cloud.google.com/go/secretmanager v1.14.0
 	github.com/kr/pretty v0.3.1
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
+	golang.org/x/oauth2 v0.28.0
 )
 
 require (
