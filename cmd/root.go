@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +14,17 @@ var rootCmd = &cobra.Command{
 	Use:   "PathTracer",
 	Short: "Manage your paths using this!",
 	Long:  `Same as short description...`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if ok, _ := cmd.Root().PersistentFlags().GetBool("debug"); ok {
+			logrus.SetLevel(logrus.DebugLevel)
+		} else {
+			logrus.SetLevel(logrus.InfoLevel)
+		}
+	},
+}
+
+func init() {
+	rootCmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
 }
 
 // Execute runs the root command and exits with the appropriate code on error.
