@@ -3,6 +3,7 @@ package filesys
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 const (
 	contextFileName      = "context"
 	contextsJSONFileName = "contexts.json"
+	gdriveCwdFileName    = "gdrive_cwd"
 
 	// TypeLocal is the context type for local storage.
 	TypeLocal = "local"
@@ -20,6 +22,8 @@ const (
 	TypeGDrive = "gdrive"
 	// ContextEnvVar is the environment variable for the current context. When set, it overrides the context file.
 	ContextEnvVar = "MM_CONTEXT"
+	// GDriveCwdEnvVar is the environment variable for the current Google Drive directory. When set, overrides the gdrive_cwd file.
+	GDriveCwdEnvVar = "MM_GDRIVE_CWD"
 )
 
 var validContextTypes = map[string]bool{TypeLocal: true, TypeGDrive: true}
@@ -43,6 +47,8 @@ type ContextRepository interface {
 	Create(name, contextType string) error
 	GetContext() (string, error)
 	GetContextType(name string) (string, error)
+	GetGDriveCwd() (string, error)
+	SetGDriveCwd(path string) error
 }
 
 // Ensure *ContextRepositoryImpl implements ContextRepository.
@@ -91,6 +97,15 @@ func (s *ContextRepositoryImpl) ContextsJSONPath() (string, error) {
 		return "", err
 	}
 	return filepath.Join(dir, contextsJSONFileName), nil
+}
+
+// gdriveCwdPath returns the path to the gdrive_cwd file.
+func (s *ContextRepositoryImpl) gdriveCwdPath() (string, error) {
+	dir, err := s.baseDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, gdriveCwdFileName), nil
 }
 
 // LoadContexts reads and parses contexts.json. Returns a nil slice if the file does not exist.
@@ -210,4 +225,66 @@ func (s *ContextRepositoryImpl) GetContextType(name string) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+// GetGDriveCwd returns the current Google Drive working directory (for shell-style navigation).
+// Env MM_GDRIVE_CWD overrides the gdrive_cwd file. Returns ("", nil) if unset (meaning root "/").
+func (s *ContextRepositoryImpl) GetGDriveCwd() (string, error) {
+	if v := os.Getenv(GDriveCwdEnvVar); v != "" {
+		return normalizeDrivePath(v), nil
+	}
+	path, err := s.gdriveCwdPath()
+	if err != nil {
+		return "", err
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
+	return normalizeDrivePath(strings.TrimSpace(string(b))), nil
+}
+
+// SetGDriveCwd persists the current Google Drive path to the gdrive_cwd file.
+func (s *ContextRepositoryImpl) SetGDriveCwd(path string) error {
+	path = normalizeDrivePath(path)
+	filePath, err := s.gdriveCwdPath()
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filePath, []byte(path), 0600)
+}
+
+// normalizeDrivePath returns a path like "/" or "/Folder/Sub" (leading slash, no trailing).
+func normalizeDrivePath(p string) string {
+	p = strings.TrimSpace(p)
+	if p == "" || p == "." {
+		return "/"
+	}
+	p = strings.TrimPrefix(p, "/")
+	p = strings.TrimSuffix(p, "/")
+	if p == "" {
+		return "/"
+	}
+	return "/" + p
+}
+
+// ResolveGDrivePath resolves target against cwd (absolute path or relative). Returns an absolute path like "/" or "/Folder/Sub".
+// If target starts with "/", it is normalized and returned. Otherwise path.Join(cwd, target) is cleaned and normalized.
+func ResolveGDrivePath(cwd, target string) string {
+	if cwd == "" {
+		cwd = "/"
+	}
+	target = strings.TrimSpace(target)
+	if target == "" || target == "." {
+		return normalizeDrivePath(cwd)
+	}
+	if strings.HasPrefix(target, "/") {
+		return normalizeDrivePath(target)
+	}
+	// Relative: join with cwd and clean (handles ".." and ".")
+	joined := path.Join(cwd, target)
+	return normalizeDrivePath(joined)
 }

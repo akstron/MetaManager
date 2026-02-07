@@ -50,6 +50,15 @@ var contextGetCmd = &cobra.Command{
 	RunE:  runContextGet,
 }
 
+// contextListCmd lists all contexts in table form.
+var contextListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List all contexts in table form",
+	Long:  `Lists every context from contexts.json with name, type, and which one is current.`,
+	Args:  cobra.NoArgs,
+	RunE:  runContextList,
+}
+
 var contextCreateType string
 
 func init() {
@@ -57,6 +66,7 @@ func init() {
 	contextCmd.AddCommand(contextSetCmd)
 	contextCmd.AddCommand(contextCreateCmd)
 	contextCmd.AddCommand(contextGetCmd)
+	contextCmd.AddCommand(contextListCmd)
 	contextCreateCmd.Flags().StringVarP(&contextCreateType, "type", "t", "", "Context type: local or gdrive (required)")
 	if err := contextCreateCmd.MarkFlagRequired("type"); err != nil {
 		fmt.Fprintln(os.Stderr, "context create: mark flag required:", err)
@@ -92,6 +102,34 @@ func runContextGet(cmd *cobra.Command, args []string) error {
 	}
 	if name != "" {
 		fmt.Println(name)
+	}
+	return nil
+}
+
+func runContextList(cmd *cobra.Command, args []string) error {
+	entries, err := defaultStore.LoadContexts()
+	if err != nil {
+		return err
+	}
+	current, err := defaultStore.GetContext()
+	if err != nil {
+		return err
+	}
+	current = strings.ToLower(strings.TrimSpace(current))
+
+	const nameCol, typeCol, currentCol = 20, 12, 8
+	header := fmt.Sprintf("%-*s %-*s %-*s", nameCol, "NAME", typeCol, "TYPE", currentCol, "CURRENT")
+	fmt.Println(header)
+	fmt.Println(strings.Repeat("-", nameCol+typeCol+currentCol+2))
+	for _, e := range entries {
+		cur := ""
+		if e.Name == current {
+			cur = "*"
+		}
+		fmt.Printf("%-*s %-*s %-*s\n", nameCol, e.Name, typeCol, e.Type, currentCol, cur)
+	}
+	if len(entries) == 0 {
+		fmt.Println("  (no contexts; use 'context create <name> --type local|gdrive')")
 	}
 	return nil
 }

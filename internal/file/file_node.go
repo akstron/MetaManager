@@ -3,7 +3,6 @@ package file
 import (
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"io/fs"
-	"os"
 )
 
 /*Common node operations which should be provided by all nodes*/
@@ -117,11 +116,4 @@ func CreateTreeNodeFromPathAndType(path string, isDir bool) (*ds.TreeNode, error
 	}, nil
 }
 
-func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
-	entry, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return CreateTreeNodeFromPathAndType(path, entry.IsDir())
-}
+// CreateTreeNodeFromPath for local paths is in drive_node.go (unified with gdrive support).

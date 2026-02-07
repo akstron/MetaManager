@@ -17,9 +17,15 @@ type FileNodeJSONSerializer struct {
 
 func (FileNodeJSONSerializer) InfoMarshal(info ds.TreeNodeInformable) ([]byte, string, error) {
 	fileType := "DIR"
-	_, ok := info.(*FileNode)
-	if ok {
+	switch info.(type) {
+	case *FileNode:
 		fileType = "FILE"
+	case *DirNode:
+		fileType = "DIR"
+	case *DriveFileNode:
+		fileType = "GDRIVE_FILE"
+	case *DriveDirNode:
+		fileType = "GDRIVE_DIR"
 	}
 	serializedInfo, err := json.Marshal(info)
 	return serializedInfo, fileType, err
@@ -35,7 +41,6 @@ func (FileNodeJSONSerializer) InfoUnmarshal(data []byte, serializationInfo strin
 			return nil, err
 		}
 		result = &fileNode
-		// return &result, nil
 	case "DIR":
 		var dirNode DirNode
 		err := json.Unmarshal(data, &dirNode)
@@ -43,7 +48,20 @@ func (FileNodeJSONSerializer) InfoUnmarshal(data []byte, serializationInfo strin
 			return nil, err
 		}
 		result = &dirNode
-		// return &dirNode, nil
+	case "GDRIVE_FILE":
+		var n DriveFileNode
+		err := json.Unmarshal(data, &n)
+		if err != nil {
+			return nil, err
+		}
+		result = &n
+	case "GDRIVE_DIR":
+		var n DriveDirNode
+		err := json.Unmarshal(data, &n)
+		if err != nil {
+			return nil, err
+		}
+		result = &n
 	default:
 		return nil, fmt.Errorf("unknown serializationInfo: %s found", serializationInfo)
 	}
