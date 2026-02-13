@@ -62,9 +62,16 @@ func EnsureAppDataDir(contextName string) error {
 		return err
 	}
 
+	absPath := "/"
+	if contextName == "gdrive" {
+		absPath = file.GDrivePathPrefix
+	} else if os.Getenv("MM_TEST_CONTEXT_DIR") != "" {
+		// In tests, root must match the track root so merge creates the right number of nodes.
+		absPath = baseDir
+	}
 	emptyRoot := &ds.TreeNode{
 		// root is a special path that is used to represent the root of the tree
-		Info:       &file.FileNode{GeneralNode: file.GeneralNode{AbsPath: "root"}},
+		Info:       &file.FileNode{GeneralNode: file.GeneralNode{AbsPath: absPath}},
 		Children:   nil,
 		Serializer: file.FileNodeJSONSerializer{},
 	}

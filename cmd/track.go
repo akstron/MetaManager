@@ -38,15 +38,15 @@ func trackInternal(ctxName, pathExp string) error {
 		logrus.Debugf("[track] Read root error: %v", err)
 		return err
 	}
-	if root != nil && root.Info != nil {
-		if info, ok := root.Info.(file.NodeInformable); ok {
-			logrus.Debugf("[track] current root path: %q", info.GetAbsPath())
-		} else {
-			logrus.Debugf("[track] current root (info type %T, no path)", root.Info)
-		}
-	} else {
-		logrus.Debugf("[track] current root: nil")
+
+	if root == nil {
+		return fmt.Errorf("root is nil")
 	}
+	info, ok := root.Info.(file.NodeInformable)
+	if !ok {
+		return fmt.Errorf("root info is not a NodeInformable")
+	}
+	logrus.Debugf("[track] current root path: %q", info.GetAbsPath())
 
 	// Resolve "." and relative paths before any logic.
 	if pathExp == "." || pathExp == "" {
@@ -85,13 +85,7 @@ func trackInternal(ctxName, pathExp string) error {
 	logrus.Debugf("[track] merge subtree into root")
 	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
 
-	pathSplitter, err := data.GetPathSplitter()
-	if err != nil {
-		logrus.Debugf("[track] GetPathSplitter error: %v", err)
-		return err
-	}
-
-	err = drMg.MergeNode(subTree, pathSplitter)
+	err = drMg.MergeNode(subTree)
 	if err != nil {
 		logrus.Debugf("[track] MergeNode error: %v", err)
 		return err

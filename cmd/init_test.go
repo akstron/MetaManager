@@ -62,7 +62,8 @@ func TestInit(t *testing.T) {
 			cnt += 1
 		}
 		require.Equal(t, 1, cnt)
-		require.Equal(t, got.AbsPath, "root") // initial empty root is written with path "/"
+		// When MM_TEST_CONTEXT_DIR is set, root is set to that path so merge in track tests works.
+		require.Equal(t, got.AbsPath, root)
 	}
 	testExectutor := utils.NewDirLifeCycleTester(t, dirStructure, testExecFunc)
 	testExectutor.Execute()

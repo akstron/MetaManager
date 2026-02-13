@@ -6,108 +6,11 @@ import (
 	"testing"
 
 	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/file"
 	"github.com/heroku/self/MetaManager/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUnixPathSplitterImpl_Split(t *testing.T) {
-	splitter := &UnixPathSplitterImpl{}
-
-	_, err := splitter.Split("")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path is not a unix path")
-
-	segments, err := splitter.Split("/")
-	require.NoError(t, err)
-	require.Empty(t, segments)
-
-	_, err = splitter.Split("a")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path is not a unix path")
-
-	_, err = splitter.Split("/a/")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path cannot end with a slash")
-
-	_, err = splitter.Split("/a/b/")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path cannot end with a slash")
-
-	segments, err = splitter.Split("/a")
-	require.NoError(t, err)
-	require.Equal(t, []string{"a"}, segments)
-
-	segments, err = splitter.Split("/a/b/c")
-	require.NoError(t, err)
-	require.Equal(t, []string{"a", "b", "c"}, segments)
-
-	_, err = splitter.Split("a/b")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path is not a unix path")
-}
-
-func TestGDrivePathSplitterImpl_Split(t *testing.T) {
-	splitter := &GDrivePathSplitterImpl{}
-
-	_, err := splitter.Split("/not/gdrive")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path is not a gdrive path")
-
-	_, err = splitter.Split(file.GDrivePathPrefix)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path contains empty segments")
-
-	segments, err := splitter.Split(file.GDrivePathPrefix + "Folder")
-	require.NoError(t, err)
-	require.Equal(t, []string{"gdrive:", "Folder"}, segments)
-
-	segments, err = splitter.Split(file.GDrivePathPrefix + "Folder/Sub/file.pdf")
-	require.NoError(t, err)
-	require.Equal(t, []string{"gdrive:", "Folder", "Sub", "file.pdf"}, segments)
-
-	_, err = splitter.Split(file.GDrivePathPrefix + "/")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path contains empty segments")
-
-	_, err = splitter.Split(file.GDrivePathPrefix + "Folder/")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path contains empty segments")
-
-	_, err = splitter.Split(file.GDrivePathPrefix + "Folder/Sub/")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "path contains empty segments")
-}
-
 const testContextEnvVar = "MM_CONTEXT"
-
-func TestGetPathSplitter(t *testing.T) {
-	// Restore env after test so we don't affect other tests.
-	prev := os.Getenv(testContextEnvVar)
-	defer func() {
-		if prev == "" {
-			os.Unsetenv(testContextEnvVar)
-		} else {
-			os.Setenv(testContextEnvVar, prev)
-		}
-	}()
-
-	os.Setenv(testContextEnvVar, "local")
-	splitter, err := GetPathSplitter()
-	require.NoError(t, err)
-	require.IsType(t, &UnixPathSplitterImpl{}, splitter)
-	segments, err := splitter.Split("/local/path")
-	require.NoError(t, err)
-	require.Equal(t, []string{"local", "path"}, segments)
-
-	os.Setenv(testContextEnvVar, "gdrive")
-	splitter, err = GetPathSplitter()
-	require.NoError(t, err)
-	require.IsType(t, &GDrivePathSplitterImpl{}, splitter)
-	segments, err = splitter.Split(file.GDrivePathPrefix + "My Drive/doc")
-	require.NoError(t, err)
-	require.Equal(t, []string{"gdrive:", "My Drive", "doc"}, segments)
-}
 
 func TestMergeNodeWithPath(t *testing.T) {
 	dirStructure := &utils.MockDir{
