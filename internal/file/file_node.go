@@ -1,7 +1,6 @@
 package file
 
 import (
-	"github.com/heroku/self/MetaManager/internal/ds"
 	"io/fs"
 )
 
@@ -71,8 +70,10 @@ type SerializableNode interface {
 	UnmarshalJSON(data []byte) error
 }
 
+// FileNode represents a file or directory (local or gdrive). DriveId is set for Google Drive nodes.
 type FileNode struct {
 	GeneralNode
+	DriveId string // non-empty for Google Drive nodes
 }
 
 func (fn *FileNode) GetInfoProvider() NodeInformable {
@@ -82,38 +83,3 @@ func (fn *FileNode) GetInfoProvider() NodeInformable {
 func (fn *FileNode) Name() string {
 	return "FILE"
 }
-
-type DirNode struct {
-	GeneralNode
-}
-
-func (dn *DirNode) GetInfoProvider() NodeInformable {
-	return dn
-}
-
-func (dn *DirNode) Name() string {
-	return "DIR"
-}
-
-func CreateTreeNodeFromPathAndType(path string, isDir bool) (*ds.TreeNode, error) {
-	var info ds.TreeNodeInformable
-	if isDir {
-		info = &DirNode{
-			GeneralNode: GeneralNode{
-				AbsPath: path,
-			},
-		}
-	} else {
-		info = &FileNode{
-			GeneralNode: GeneralNode{
-				AbsPath: path,
-			},
-		}
-	}
-
-	return &ds.TreeNode{
-		Info: info,
-	}, nil
-}
-
-// CreateTreeNodeFromPath for local paths is in drive_node.go (unified with gdrive support).

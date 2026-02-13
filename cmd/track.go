@@ -84,7 +84,14 @@ func trackInternal(ctxName, pathExp string) error {
 
 	logrus.Debugf("[track] merge subtree into root")
 	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
-	err = drMg.MergeNode(subTree)
+
+	pathSplitter, err := data.GetPathSplitter()
+	if err != nil {
+		logrus.Debugf("[track] GetPathSplitter error: %v", err)
+		return err
+	}
+
+	err = drMg.MergeNode(subTree, pathSplitter)
 	if err != nil {
 		logrus.Debugf("[track] MergeNode error: %v", err)
 		return err

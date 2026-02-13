@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
@@ -42,7 +43,13 @@ func TestTrackCmd(t *testing.T) {
 		os.Setenv("MM_CONTEXT", "default")
 		defer os.Unsetenv("MM_TEST_CONTEXT_DIR")
 		defer os.Unsetenv("MM_CONTEXT")
-		err := EnsureAppDataDir("default")
+
+		err := defaultStore.Create("default", filesys.TypeLocal)
+		require.NoError(t, err)
+		err = EnsureAppDataDir("default")
+		require.NoError(t, err)
+
+		rw, err := storage.GetRW("default")
 		require.NoError(t, err)
 
 		loc := filepath.Join(root, "1_a")
@@ -60,9 +67,6 @@ func TestTrackCmd(t *testing.T) {
 		outputs := []int{
 			2, 3, 8, 8, 8, 16, /*includes .mm/default created for context*/
 		}
-
-		rw, err := storage.GetRW("default")
-		require.NoError(t, err)
 
 		for i, loc := range locs {
 			err = trackInternal("default", loc)

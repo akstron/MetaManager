@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/ds"
@@ -133,14 +134,12 @@ func (mg *DirTreeManager) MergeNodeWithPath(path string) error {
 }
 
 // isPathPrefixOrEqual returns true when root is equal to path or path is under root (root is a path prefix of path).
+// Uses "/" as the path separator for consistent behavior with local and gdrive paths.
 func isPathPrefixOrEqual(root, path string) bool {
-	root = filepath.Clean(root)
-	path = filepath.Clean(path)
 	if root == path {
 		return true
 	}
-	// Ensure we don't match /foo against /foobar: path must start with root followed by separator.
-	return len(path) > len(root) && (path[len(root)] == '/' || path[len(root)] == filepath.Separator) && path[:len(root)] == root
+	return len(root) == 0 || (len(path) > len(root) && path[:len(root)] == root)
 }
 
 func (mg *DirTreeManager) MergeNode(treeNode *ds.TreeNode) error {
@@ -195,7 +194,14 @@ func (mg *DirTreeManager) MergeNode(treeNode *ds.TreeNode) error {
 
 		for firPath != secPath && len(secPath) > 0 {
 			midPaths = append(midPaths, secPath)
-			secPath = filepath.Join(secPath, "..")
+			// secPath = filepath.Join(secPath, "..")
+			lastIndex := strings.LastIndex(secPath, "/")
+			if lastIndex == -1 {
+				break
+			}
+			secPath = secPath[:strings.LastIndex(secPath, "/")]
+
+			logrus.Debugf("[merge] secPath=%q", secPath)
 		}
 
 		slices.Reverse(midPaths)

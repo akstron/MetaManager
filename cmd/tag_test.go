@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
 	"sort"
 	"testing"
+
+	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/require"
 )

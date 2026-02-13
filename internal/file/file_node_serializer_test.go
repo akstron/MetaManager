@@ -2,43 +2,43 @@ package file
 
 import (
 	"encoding/json"
-	"github.com/heroku/self/MetaManager/internal/ds"
 	"testing"
 
+	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDataSerialization(t *testing.T) {
 	root := &ds.TreeNode{
-		Info: &DirNode{},
+		Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/"}},
 		Children: []*ds.TreeNode{
 			{
-				Info: &FileNode{},
+				Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/f"}},
 			},
 			{
-				Info: &DirNode{},
+				Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/d"}},
 				Children: []*ds.TreeNode{
 					{
-						Info: &DirNode{},
+						Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/d/a"}},
 						Children: []*ds.TreeNode{
 							{
-								Info: &FileNode{},
+								Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/d/a/x"}},
 							},
 						},
 					},
 					{
-						Info: &DirNode{},
+						Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/d/b"}},
 					},
 					{
-						Info: &DirNode{},
+						Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/d/c"}},
 					},
 					{
-						Info: &FileNode{},
+						Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/d/g"}},
 					},
 				},
 			},
 			{
-				Info: &FileNode{},
+				Info: &FileNode{GeneralNode: GeneralNode{AbsPath: "/h"}},
 			},
 		},
 	}
@@ -54,24 +54,14 @@ func TestDataSerialization(t *testing.T) {
 
 	trMg := ds.NewTreeManager(&extractedRoot)
 	it := ds.NewTreeIterator(trMg)
-	dirCnt := 0
-	fileCnt := 0
-
+	cnt := 0
 	for it.HasNext() {
 		curNode, err := it.Next()
 		got := curNode.Info
 		require.NoError(t, err)
-
-		switch got.(type) {
-		case *DirNode:
-			dirCnt += 1
-		case *FileNode:
-			fileCnt += 1
-		default:
-			t.FailNow()
-		}
+		_, ok := got.(*FileNode)
+		require.True(t, ok)
+		cnt++
 	}
-
-	require.Equal(t, 5, dirCnt)
-	require.Equal(t, 4, fileCnt)
+	require.Equal(t, 9, cnt)
 }

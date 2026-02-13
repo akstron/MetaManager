@@ -61,10 +61,10 @@ var contextListCmd = &cobra.Command{
 
 // contextDeleteCmd removes a context from contexts.json.
 var contextDeleteCmd = &cobra.Command{
-	Use:   "delete <name>",
-	Short: "Delete a context by name",
-	Long:  `Removes the context from contexts.json. If it was the current context, the current context is cleared.`,
-	Args:  cobra.ExactArgs(1),
+	Use:   "delete [name]",
+	Short: "Delete a context by name, or all contexts with --all",
+	Long:  `Removes the context from contexts.json. If it was the current context, the current context is cleared. Use --all to delete every context.`,
+	Args:  cobra.MaximumNArgs(1),
 	RunE:  runContextDelete,
 }
 
@@ -77,6 +77,7 @@ func init() {
 	contextCmd.AddCommand(contextGetCmd)
 	contextCmd.AddCommand(contextListCmd)
 	contextCmd.AddCommand(contextDeleteCmd)
+	contextDeleteCmd.Flags().BoolP("all", "a", false, "Delete all contexts")
 	contextCreateCmd.Flags().StringVarP(&contextCreateType, "type", "t", "", "Context type: local or gdrive (required)")
 	if err := contextCreateCmd.MarkFlagRequired("type"); err != nil {
 		fmt.Fprintln(os.Stderr, "context create: mark flag required:", err)
@@ -149,6 +150,20 @@ func runContextList(cmd *cobra.Command, args []string) error {
 }
 
 func runContextDelete(cmd *cobra.Command, args []string) error {
+	all, _ := cmd.Flags().GetBool("all")
+	if all {
+		if len(args) > 0 {
+			return fmt.Errorf("cannot pass a name when using --all")
+		}
+		if err := defaultStore.DeleteAll(); err != nil {
+			return err
+		}
+		fmt.Println("All contexts deleted")
+		return nil
+	}
+	if len(args) != 1 {
+		return fmt.Errorf("context name required (or use --all to delete all contexts)")
+	}
 	name := strings.ToLower(strings.TrimSpace(args[0]))
 	if err := defaultStore.Delete(name); err != nil {
 		return err

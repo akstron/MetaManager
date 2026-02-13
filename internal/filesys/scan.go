@@ -50,10 +50,10 @@ func (f *FSScannableNode) EvalNode(cxt ScannableCxt) error {
 	}
 
 	if node.IsDir() {
-		dirNode := &file.DirNode{
+		nodeInfo := &file.FileNode{
 			GeneralNode: file.NewGeneralNode(f.strAbsPath, node),
 		}
-		f.cTreeNode = ds.NewTreeNode(dirNode)
+		f.cTreeNode = ds.NewTreeNode(nodeInfo)
 
 		entries, err := os.ReadDir(f.strAbsPath)
 		if err != nil {
@@ -70,10 +70,10 @@ func (f *FSScannableNode) EvalNode(cxt ScannableCxt) error {
 			f.children = append(f.children, nextNode)
 		}
 	} else {
-		fileNode := &file.FileNode{
+		nodeInfo := &file.FileNode{
 			GeneralNode: file.NewGeneralNode(f.strAbsPath, node),
 		}
-		f.cTreeNode = ds.NewTreeNode(fileNode)
+		f.cTreeNode = ds.NewTreeNode(nodeInfo)
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func ScanDirectory(dirPath, mmDirPath string) (*ds.TreeNode, error) {
 		return nil, err
 	}
 
-	topDir := &file.DirNode{GeneralNode: file.NewGeneralNode(dirPathAbs, root)}
+	topDir := &file.FileNode{GeneralNode: file.NewGeneralNode(dirPathAbs, root)}
 
 	igMg, err := config.NewIgnoreManager(mmDirPath)
 	if err != nil {
@@ -180,7 +180,7 @@ func scanFile(fn *file.FileNode, handler ScanningHandler) (*ds.TreeNode, error) 
 	}, nil
 }
 
-func scanDir(fn *file.DirNode, handler ScanningHandler) (*ds.TreeNode, error) {
+func scanDir(fn *file.FileNode, handler ScanningHandler) (*ds.TreeNode, error) {
 	curTreeNode := &ds.TreeNode{
 		Info: fn,
 	}
@@ -204,7 +204,7 @@ func scanDir(fn *file.DirNode, handler ScanningHandler) (*ds.TreeNode, error) {
 
 		// TODO: Implement some common function (probably)
 		if entry.IsDir() {
-			dirNode := &file.DirNode{
+			dirNode := &file.FileNode{
 				GeneralNode: file.NewGeneralNode(absEntryPath, fileEntry),
 			}
 

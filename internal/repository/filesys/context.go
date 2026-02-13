@@ -46,6 +46,7 @@ type ContextRepository interface {
 	SetCurrent(name string) error
 	Create(name, contextType string) error
 	Delete(name string) error
+	DeleteAll() error
 	GetContext() (string, error)
 	GetContextType(name string) (string, error)
 	GetGDriveCwd() (string, error)
@@ -233,6 +234,25 @@ func (s *ContextRepositoryImpl) Delete(name string) error {
 		if err := os.WriteFile(ctxPath, []byte(""), 0600); err != nil {
 			return fmt.Errorf("clear current context file: %w", err)
 		}
+	}
+	return nil
+}
+
+// DeleteAll removes all contexts from contexts.json and clears the current context file.
+func (s *ContextRepositoryImpl) DeleteAll() error {
+	path, err := s.ContextsJSONPath()
+	if err != nil {
+		return err
+	}
+	if err := utils.WriteJSON(path, ContextsFile{Contexts: []ContextEntry{}}, true); err != nil {
+		return err
+	}
+	ctxPath, err := s.ContextFilePath()
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(ctxPath, []byte(""), 0600); err != nil {
+		return fmt.Errorf("clear current context file: %w", err)
 	}
 	return nil
 }
