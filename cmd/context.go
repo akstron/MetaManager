@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/repository/filesys"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -155,8 +156,20 @@ func runContextDelete(cmd *cobra.Command, args []string) error {
 		if len(args) > 0 {
 			return fmt.Errorf("cannot pass a name when using --all")
 		}
+		// Get all contexts before deleting so we can delete their .mm directories
+		contexts, err := defaultStore.LoadContexts()
+		if err != nil {
+			return fmt.Errorf("load contexts: %w", err)
+		}
 		if err := defaultStore.DeleteAll(); err != nil {
 			return err
+		}
+		// Delete .mm directories for all contexts
+		for _, ctx := range contexts {
+			if err := deleteContextMMDir(ctx.Name); err != nil {
+				// Log error but continue deleting other contexts
+				fmt.Fprintf(os.Stderr, "Warning: failed to delete .mm directory for context %q: %v\n", ctx.Name, err)
+			}
 		}
 		fmt.Println("All contexts deleted")
 		return nil
@@ -168,8 +181,29 @@ func runContextDelete(cmd *cobra.Command, args []string) error {
 	if err := defaultStore.Delete(name); err != nil {
 		return err
 	}
+	// Delete the .mm directory for this context
+	if err := deleteContextMMDir(name); err != nil {
+		return fmt.Errorf("delete .mm directory: %w", err)
+	}
 	fmt.Printf("Context %q deleted\n", name)
 	return nil
+}
+
+// deleteContextMMDir deletes the .mm/<contextName>/ directory for the given context.
+func deleteContextMMDir(contextName string) error {
+	appDir, err := utils.GetAppDataDirForContext(contextName)
+	if err != nil {
+		return err
+	}
+	exists, err := utils.IsFilePresent(appDir)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		// Directory doesn't exist, nothing to delete
+		return nil
+	}
+	return os.RemoveAll(appDir)
 }
 
 // GetContexts returns all context entries from the default store. Returns nil, nil if the file does not exist.

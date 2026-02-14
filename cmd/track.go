@@ -9,12 +9,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
 	"github.com/heroku/self/MetaManager/internal/filesys"
+	"github.com/heroku/self/MetaManager/internal/printer"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/heroku/self/MetaManager/internal/storage"
@@ -52,6 +54,7 @@ func trackInternal(ctxName, pathExp string) error {
 	if pathExp == "." || pathExp == "" {
 		if isTrackGDriveByContext(pathExp) {
 			cwd, _ := defaultStore.GetGDriveCwd()
+			logrus.Debugf("[track] gdrive cwd: %q", cwd)
 			pathExp = contextrepo.ResolveGDrivePath(cwd, ".")
 			logrus.Debugf("[track] resolved . to gdrive cwd: %q", pathExp)
 		} else {
@@ -99,6 +102,48 @@ func trackInternal(ctxName, pathExp string) error {
 
 	logrus.Debugf("[track] trackInternal done")
 	return nil
+}
+
+// trackShowInternal lists tracked nodes from the current directory (local cwd or gdrive cwd) in a tree structure.
+func trackShowInternal(ctxName string, tagFlag, idFlag bool) error {
+	rw, err := storage.GetRW(ctxName)
+	if err != nil {
+		return err
+	}
+	root, err := rw.Read()
+	if err != nil {
+		return err
+	}
+	var dirPath string
+	ctxType, err := GetContextType(ctxName)
+	if err == nil && ctxType == contextrepo.TypeGDrive {
+		cwd, _ := defaultStore.GetGDriveCwd()
+		resolved := contextrepo.ResolveGDrivePath(cwd, ".")
+		if resolved == "/" {
+			dirPath = file.GDrivePathPrefix
+		} else {
+			dirPath = file.GDrivePathPrefix + strings.TrimPrefix(resolved, "/")
+		}
+	} else {
+		dirPath, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+	}
+	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
+	requiredNode, err := drMg.FindTreeNodeByAbsPath(dirPath)
+	if err != nil {
+		return err
+	}
+	pr := printer.NewTreePrinterManager(ds.NewTreeManager(requiredNode))
+	typesOfPrinting := []string{"node"}
+	if idFlag {
+		typesOfPrinting = append(typesOfPrinting, "id")
+	}
+	if tagFlag {
+		typesOfPrinting = append(typesOfPrinting, "tags")
+	}
+	return pr.TrPrint(typesOfPrinting)
 }
 
 // isTrackGDriveByContext returns true when current context is gdrive and path looks like a Drive path (starts with / or is a single segment).
@@ -175,6 +220,45 @@ finally:
 	}
 }
 
+// trackShowCmd lists tracked files/dirs from the current (local or gdrive) directory in a tree structure.
+var trackShowCmd = &cobra.Command{
+	Use:   "show",
+	Short: "Show tracked files/dirs from current directory in a tree structure",
+	Long:  "Lists all tracked files/dirs from the current root (local cwd or gdrive cwd) in a tree structure. Works in both local and gdrive contexts.",
+	Run:   runTrackShow,
+}
+
+func runTrackShow(cmd *cobra.Command, args []string) {
+	var err error
+	var tagFlag, idFlag bool
+	var ctxName string
+	ctxName, err = getContextRequired()
+	if err != nil {
+		goto finally
+	}
+	_, err = utils.CommonAlreadyInitializedChecks(ctxName)
+	if err != nil {
+		goto finally
+	}
+	tagFlag, err = cmd.Flags().GetBool("tag")
+	if err != nil {
+		goto finally
+	}
+	idFlag, err = cmd.Flags().GetBool("id")
+	if err != nil {
+		goto finally
+	}
+	err = trackShowInternal(ctxName, tagFlag, idFlag)
+	if err != nil {
+		goto finally
+	}
+	return
+finally:
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 // trackCmd represents the track command
 var trackCmd = &cobra.Command{
 	Use:   "track",
@@ -194,20 +278,16 @@ With context set to gdrive, you can also use:
   track "/Folder"   or   track "/Folder*"
 
 After "gdrive cd /SomeFolder", relative paths use that directory:
-  track .   track SubFolder   track SubFolder*`,
+  track .   track SubFolder   track SubFolder*
+
+Subcommands:
+  track show   show tracked nodes from current directory (local or gdrive cwd)`,
 	Run: track,
 }
 
 func init() {
 	rootCmd.AddCommand(trackCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// trackCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// trackCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	trackCmd.AddCommand(trackShowCmd)
+	trackShowCmd.Flags().BoolP("tag", "t", false, "include tags for each node")
+	trackShowCmd.Flags().BoolP("id", "i", false, "include id for each node")
 }

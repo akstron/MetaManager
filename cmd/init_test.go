@@ -6,6 +6,7 @@ import (
 
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
@@ -67,4 +68,29 @@ func TestInit(t *testing.T) {
 	}
 	testExectutor := utils.NewDirLifeCycleTester(t, dirStructure, testExecFunc)
 	testExectutor.Execute()
+}
+
+// TestEnsureAppDataDirGDriveRoot asserts that when context type is gdrive, the initial root AbsPath is gdrive:/
+func TestEnsureAppDataDirGDriveRoot(t *testing.T) {
+	const gdriveCtxName = "gdrive-ctx"
+	dir := t.TempDir()
+	os.Setenv("MM_TEST_CONTEXT_DIR", dir)
+	os.Setenv("MM_CONTEXT", gdriveCtxName)
+	defer os.Unsetenv("MM_TEST_CONTEXT_DIR")
+	defer os.Unsetenv("MM_CONTEXT")
+
+	err := defaultStore.Create(gdriveCtxName, filesys.TypeGDrive)
+	require.NoError(t, err)
+	err = EnsureAppDataDir(gdriveCtxName)
+	require.NoError(t, err)
+
+	rw, err := storage.GetRW(gdriveCtxName)
+	require.NoError(t, err)
+	node, err := rw.Read()
+	require.NoError(t, err)
+	require.NotNil(t, node)
+
+	info, ok := node.Info.(*file.FileNode)
+	require.True(t, ok, "root info should be *file.FileNode")
+	require.Equal(t, file.GDrivePathPrefix, info.AbsPath, "gdrive context root AbsPath should be gdrive:/")
 }

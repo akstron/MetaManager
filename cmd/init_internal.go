@@ -11,6 +11,7 @@ import (
 	dataPkg "github.com/heroku/self/MetaManager/internal/data"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 )
@@ -63,7 +64,8 @@ func EnsureAppDataDir(contextName string) error {
 	}
 
 	absPath := "/"
-	if contextName == "gdrive" {
+	contextType, err := GetContextType(contextName)
+	if err == nil && contextType == contextrepo.TypeGDrive {
 		absPath = file.GDrivePathPrefix
 	} else if os.Getenv("MM_TEST_CONTEXT_DIR") != "" {
 		// In tests, root must match the track root so merge creates the right number of nodes.
