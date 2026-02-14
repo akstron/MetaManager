@@ -5,13 +5,17 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/cmderror"
-	"github.com/heroku/self/MetaManager/internal/data"
-	"github.com/heroku/self/MetaManager/internal/utils"
-	"github.com/heroku/self/MetaManager/internal/storage"
 	"path/filepath"
 	"runtime/debug"
+	"strings"
+
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/data"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -29,9 +33,32 @@ func nodeListInternal(ctxName, path string) ([]string, error) {
 
 	tgMg := data.NewTagManager(data.NewDirTreeManager(ds.NewTreeManager(root)))
 
-	absPath, err := filepath.Abs(path)
+	// Get context type to determine path handling
+	ctxType, err := GetContextType(ctxName)
 	if err != nil {
 		return nil, err
+	}
+
+	var absPath string
+	if ctxType == contextrepo.TypeGDrive {
+		// For gdrive context, resolve relative paths and prefix with gdrive:/
+		cwd, err := defaultStore.GetGDriveCwd()
+		if err != nil {
+			return nil, err
+		}
+		resolved := contextrepo.ResolveGDrivePath(cwd, path)
+		// Remove leading slash and prefix with gdrive:/
+		if resolved == "/" {
+			absPath = file.GDrivePathPrefix
+		} else {
+			absPath = file.GDrivePathPrefix + strings.TrimPrefix(resolved, "/")
+		}
+	} else {
+		// For local context, use absolute path
+		absPath, err = filepath.Abs(path)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	tags, err := tgMg.GetNodeTags(absPath)
