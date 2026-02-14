@@ -74,7 +74,11 @@ func trackInternal(ctxName, pathExp string) error {
 		logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
 	}
 
-	tracker := filesys.NewContextAwareTracker(defaultStore)
+	tracker, err := filesys.GetTrackerFromContext(defaultStore)
+	if err != nil {
+		return err
+	}
+
 	subTree, err := tracker.Track(pathExp)
 	if err != nil {
 		logrus.Debugf("[track] track (gdrive/local) error: %v", err)

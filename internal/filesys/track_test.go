@@ -49,7 +49,8 @@ func TestTrack(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create tracker
-		tracker := NewContextAwareTracker(ctxRepo)
+		tracker, err := GetTrackerFromContext(ctxRepo)
+		require.NoError(t, err)
 
 		loc := filepath.Join(root, "1_a")
 		loc2 := filepath.Join(root, "2_2")
@@ -59,6 +60,9 @@ func TestTrack(t *testing.T) {
 		node, err := tracker.Track(loc)
 		require.NoError(t, err)
 		utils.ValidateNodeCnt(t, node, 1)
+		require.NoError(t, err)
+		err = ctxRepo.SetCurrent("default")
+		require.NoError(t, err)
 
 		node, err = tracker.Track(loc2)
 		require.NoError(t, err)

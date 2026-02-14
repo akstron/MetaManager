@@ -3,14 +3,14 @@ template: testify
 packages:
   github.com/heroku/self/MetaManager/internal/services:
     config:
-      dir: "mocks"
+      dir: "mocks/services"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
       GDriveServiceInterface:
   github.com/heroku/self/MetaManager/internal/filesys:
     config:
-      dir: "mocks"
+      dir: "mocks/filesys"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
@@ -19,14 +19,14 @@ packages:
       Tracker:
   github.com/heroku/self/MetaManager/internal/repository/filesys:
     config:
-      dir: "mocks"
+      dir: "mocks/repository/filesys"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
       ContextRepository:
   github.com/heroku/self/MetaManager/internal/storage:
     config:
-      dir: "mocks"
+      dir: "mocks/storage"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
@@ -36,7 +36,7 @@ packages:
       RWFactory:
   github.com/heroku/self/MetaManager/internal/file:
     config:
-      dir: "mocks"
+      dir: "mocks/file"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
@@ -47,7 +47,7 @@ packages:
       IdPrinter:
   github.com/heroku/self/MetaManager/internal/printer:
     config:
-      dir: "mocks"
+      dir: "mocks/printer"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
@@ -55,7 +55,7 @@ packages:
       PrintingContext:
   github.com/heroku/self/MetaManager/internal/ds:
     config:
-      dir: "mocks"
+      dir: "mocks/ds"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:

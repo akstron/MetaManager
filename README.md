@@ -39,11 +39,19 @@ This package uses [mockery](https://github.com/vektra/mockery) to generate mocks
 
 ### Generated Mocks
 
-The following mocks are generated:
+The following mocks are generated in the `mocks/` directory:
 
-- `internal/services/mocks/MockGDriveServiceInterface.go` - Mock for Google Drive service
-- `internal/filesys/mocks/MockScanner.go` - Mock for Scanner interface
-- `internal/filesys/mocks/MockScannableNode.go` - Mock for ScannableNode interface
+- `mocks/services/mock_GDriveServiceInterface.go` - Mock for Google Drive service
+- `mocks/filesys/mock_Scanner.go` - Mock for Scanner interface
+- `mocks/filesys/mock_ScannableNode.go` - Mock for ScannableNode interface
+- `mocks/filesys/mock_Tracker.go` - Mock for Tracker interface
+- `mocks/repository/filesys/mock_ContextRepository.go` - Mock for ContextRepository interface
+- `mocks/storage/` - Mocks for TreeReader, TreeWriter, TreeRW, RWFactory
+- `mocks/file/` - Mocks for NodeInformable, SerializableNode, TagsPrinter, NodePrinter, IdPrinter
+- `mocks/printer/` - Mocks for ListPrintable, PrintingContext
+- `mocks/ds/` - Mocks for TreeIterable, NodeIterable, InfoSerializer, TreeNodeInformable
+
+All mocks use `package mocks` and can be imported from their respective subdirectories.
 
 ### Using Mocks in Tests
 
@@ -58,25 +66,20 @@ import (
     
     "github.com/heroku/self/MetaManager/internal/filesys"
     "github.com/heroku/self/MetaManager/internal/services"
-    "github.com/heroku/self/MetaManager/internal/services/mocks"
+    servicemocks "github.com/heroku/self/MetaManager/mocks/services"
     "github.com/stretchr/testify/require"
-    "go.uber.org/mock/gomock"
+    "github.com/stretchr/testify/mock"
 )
 
 func TestTrackGDrive(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
-    
     // Create a mock GDrive service
-    mockSvc := mocks.NewMockGDriveServiceInterface(ctrl)
+    mockSvc := servicemocks.NewMockGDriveServiceInterface(t)
     
-    // Set up expectations
-    mockSvc.EXPECT().
-        ResolvePath(gomock.Any(), "/Folder1").
+    // Set up expectations using testify mock pattern
+    mockSvc.On("ResolvePath", mock.Anything, "Folder1").
         Return("folder1", nil)
     
-    mockSvc.EXPECT().
-        ListFolder(gomock.Any(), "folder1").
+    mockSvc.On("ListFolder", mock.Anything, "folder1").
         Return([]services.RootEntry{
             {Id: "sub1", Name: "Sub", IsFolder: true, MimeType: services.DriveFolderMimeType},
             {Id: "file1", Name: "file1.txt", IsFolder: false, MimeType: "text/plain"},
@@ -89,6 +92,9 @@ func TestTrackGDrive(t *testing.T) {
     tree, err := scanner.TrackGDrive(context.Background(), "/Folder1", false)
     require.NoError(t, err)
     require.NotNil(t, tree)
+    
+    // Assert all expectations were met
+    mockSvc.AssertExpectations(t)
 }
 ```
 
@@ -101,20 +107,24 @@ go get go.uber.org/mock/gomock
 #### Example: Testing with MockScanner
 
 ```go
+import (
+    filesysmocks "github.com/heroku/self/MetaManager/mocks/filesys"
+    "github.com/stretchr/testify/mock"
+)
+
 func TestContextAwareTracker(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
-    
     // Create a mock scanner
-    mockScanner := mocks.NewMockScanner(ctrl)
+    mockScanner := filesysmocks.NewMockScanner(t)
     
     // Set up expectations
-    mockScanner.EXPECT().
-        Scan("/some/path").
+    mockScanner.On("Scan", "/some/path").
         Return(&ds.TreeNode{...}, nil)
     
     // Use the mock in your test
     // ...
+    
+    // Assert all expectations were met
+    mockScanner.AssertExpectations(t)
 }
 ```
 
@@ -144,9 +154,16 @@ The mockery configuration is stored in `.mockery.yaml` at the project root. Key 
 - `dir: "mocks"` - Output directory for mocks (relative to interface package)
 - `filename: "{{.MockName}}.go"` - Filename pattern for generated mocks
 
-The configuration generates mocks for:
-- `GDriveServiceInterface` in `internal/services/mocks/`
-- `Scanner` and `ScannableNode` in `internal/filesys/mocks/`
+The configuration generates mocks in subdirectories under `mocks/`:
+- `GDriveServiceInterface` in `mocks/services/`
+- `Scanner`, `ScannableNode`, and `Tracker` in `mocks/filesys/`
+- `ContextRepository` in `mocks/repository/filesys/`
+- Storage interfaces in `mocks/storage/`
+- File interfaces in `mocks/file/`
+- Printer interfaces in `mocks/printer/`
+- Data structure interfaces in `mocks/ds/`
+
+All mocks use `package mocks` and can be imported from their respective subdirectories.
 
 ### Best Practices
 

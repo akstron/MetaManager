@@ -17,6 +17,29 @@ type Tracker interface {
 	Track(path string) (*ds.TreeNode, error)
 }
 
+func GetTrackerFromContext(cxtRepo contextrepo.ContextRepository) (Tracker, error) {
+	ctxName, err := cxtRepo.GetContext()
+	if err != nil {
+		return nil, err
+	}
+	contextType, err := cxtRepo.GetContextType(ctxName)
+	if err != nil {
+		return nil, err
+	}
+	switch contextType {
+	case contextrepo.TypeGDrive:
+		svc, err := services.GetGDriveService(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		return NewGDriveTracker(svc), nil
+	case contextrepo.TypeLocal:
+		return NewLocalTracker(), nil
+	default:
+		return nil, &cmderror.InvalidOperation{}
+	}
+}
+
 // GDriveTracker tracks Google Drive paths using a GDriveServiceInterface.
 // This allows for dependency injection and mocking in tests.
 type GDriveTracker struct {
@@ -37,16 +60,9 @@ func (g *GDriveTracker) Track(path string) (*ds.TreeNode, error) {
 	ctx := context.Background()
 
 	if path[len(path)-1] != '*' {
-		// Recursive tracking: remove '*' and scan
-		// rootDirPath := path[0 : len(path)-1]
-		// Normalize the path (remove gdrive: prefix if present, handle relative paths)
-		// drivePath, _ := scanner.NormalizeTrackPath(rootDirPath)
-		// return scanner.TrackGDrive(ctx, drivePath, true)
 		rootDirPath := path
-		// if isPathPrefixOrEqual(rootDirPath, file.GDrivePathPrefix) {
 		rootDirPath = strings.Trim(rootDirPath, "/")
 		rootDirPath = file.GDrivePathPrefix + rootDirPath
-		// }
 		return file.CreateTreeNodeFromPath(rootDirPath)
 	}
 
@@ -84,47 +100,4 @@ func (l *LocalTracker) Track(path string) (*ds.TreeNode, error) {
 
 	// Non-recursive tracking: just create a node for the path
 	return file.CreateTreeNodeFromPath(path)
-}
-
-// ContextAwareTracker creates the appropriate tracker based on the current context type.
-type ContextAwareTracker struct {
-	cxtRepo contextrepo.ContextRepository
-}
-
-func NewContextAwareTracker(cxtRepo contextrepo.ContextRepository) *ContextAwareTracker {
-	return &ContextAwareTracker{cxtRepo: cxtRepo}
-}
-
-func (c *ContextAwareTracker) Track(path string) (*ds.TreeNode, error) {
-	if len(path) == 0 {
-		return nil, &cmderror.InvalidPath{}
-	}
-
-	ctxName, err := c.cxtRepo.GetContext()
-	if err != nil {
-		return nil, err
-	}
-	contextType, err := c.cxtRepo.GetContextType(ctxName)
-	if err != nil {
-		return nil, err
-	}
-
-	var tracker Tracker
-	switch contextType {
-	case contextrepo.TypeGDrive:
-		// For GDrive, we need to get the service
-		// In production, this calls services.GetGDriveService()
-		// In tests, this can be mocked by creating a GDriveTracker directly
-		svc, err := services.GetGDriveService(context.Background())
-		if err != nil {
-			return nil, err
-		}
-		tracker = NewGDriveTracker(svc)
-	case contextrepo.TypeLocal:
-		tracker = NewLocalTracker()
-	default:
-		return nil, &cmderror.InvalidOperation{}
-	}
-
-	return tracker.Track(path)
 }

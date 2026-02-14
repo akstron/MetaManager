@@ -10,9 +10,9 @@ import (
 	filesyspkg "github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/services"
-	servicemocks "github.com/heroku/self/MetaManager/internal/services/mocks"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
+	servicemocks "github.com/heroku/self/MetaManager/mocks/services"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
