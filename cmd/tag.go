@@ -31,13 +31,8 @@ func init() {
 	// Register tag subcommands
 	tagCmd.AddCommand(tagAddCmd)
 	tagCmd.AddCommand(tagDeleteCmd)
-	tagCmd.AddCommand(tagGetCmd)
-
-	// Register node listTag command (tag-related)
-	nodeCmd.AddCommand(nodeListTagCmd)
-
-	// Register searchTag command (tag-related)
-	searchCmd.AddCommand(searchTagCmd)
+	tagCmd.AddCommand(searchTagCmd)
+	tagCmd.AddCommand(tagListCmd)
 }
 
 // tagAddInternal adds a tag to a file/directory
@@ -189,7 +184,7 @@ var tagDeleteCmd = &cobra.Command{
 }
 
 // tagGetInternal gets all files/directories with a particular tag
-func tagGetInternal(ctxName, tag string) ([]string, error) {
+func tagSearchInternal(ctxName, tag string) ([]string, error) {
 	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return nil, err
@@ -210,7 +205,7 @@ func tagGetInternal(ctxName, tag string) ([]string, error) {
 	return paths, nil
 }
 
-func tagGet(_ *cobra.Command, args []string) {
+func tagSearch(_ *cobra.Command, args []string) {
 	var err error
 	var paths []string
 	var pr list.Writer
@@ -230,7 +225,7 @@ func tagGet(_ *cobra.Command, args []string) {
 		goto finally
 	}
 
-	paths, err = tagGetInternal(ctxName, args[0])
+	paths, err = tagSearchInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}
@@ -249,17 +244,17 @@ finally:
 	}
 }
 
-// tagGetCmd represents the tagGet command
-var tagGetCmd = &cobra.Command{
-	Use:     "tagGet",
+// searchTagCmd represents the searchTag command
+var searchTagCmd = &cobra.Command{
+	Use:     "searchTag",
 	Short:   "Gets files/dirs with a particular tag",
 	Long:    `Gets files/dirs with a particular tag`,
-	Run:     tagGet,
-	Aliases: []string{"get"},
+	Run:     tagSearch,
+	Aliases: []string{"search"},
 }
 
-// nodeListInternal lists tags for a file/directory
-func nodeListInternal(ctxName, path string) ([]string, error) {
+// tagGetInternal lists tags for a file/directory
+func tagGetInternal(ctxName, path string) ([]string, error) {
 	rw, err := storage.GetRW(ctxName)
 	if err != nil {
 		return nil, err
@@ -286,7 +281,7 @@ func nodeListInternal(ctxName, path string) ([]string, error) {
 	return tags, nil
 }
 
-func nodeList(cmd *cobra.Command, args []string) {
+func tagList(cmd *cobra.Command, args []string) {
 	var err error
 	var tags []string
 	var ctxName string
@@ -305,7 +300,7 @@ func nodeList(cmd *cobra.Command, args []string) {
 		goto finally
 	}
 
-	tags, err = nodeListInternal(ctxName, args[0])
+	tags, err = tagGetInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
 	}
@@ -320,21 +315,11 @@ finally:
 	}
 }
 
-// nodeListTagCmd represents the listTag command
-var nodeListTagCmd = &cobra.Command{
-	Use:     "listTag",
+// tagListCmd represents the list command (lists tags of a file/dir)
+var tagListCmd = &cobra.Command{
+	Use:     "list",
 	Short:   "List tags of a file/dir",
 	Long:    "List tags of a file/dir",
-	Run:     nodeList,
-	Aliases: []string{"lt", "tag"},
-}
-
-// searchTagCmd represents the searchTag command
-var searchTagCmd = &cobra.Command{
-	Use:   "searchTag",
-	Short: "Find files/dir in the saved tree using regex",
-	Long:  `Find files/dir in the saved tree using regex`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("To be implemented")
-	},
+	Run:     tagList,
+	Aliases: []string{"ls"},
 }

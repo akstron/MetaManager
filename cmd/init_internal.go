@@ -6,9 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/config"
-	dataPkg "github.com/heroku/self/MetaManager/internal/data"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
@@ -78,85 +76,4 @@ func EnsureAppDataDir(contextName string) error {
 		return err
 	}
 	return rw.Write(emptyRoot)
-}
-
-/*
-Initialize the root directory named '.mm', with a config file named '.mmconfig' in it,
-for the current path provided.
-*/
-func InitRoot(loc string) error {
-	if exist, err := utils.IsFilePresent(loc); err != nil {
-		return err
-	} else if !exist {
-		return &cmderror.InvalidPath{}
-	}
-
-	dirPath, err := filepath.Abs(loc)
-	if err != nil {
-		return err
-	}
-
-	configDirPath := filepath.Join(dirPath, utils.MMDirName)
-
-	/*
-		If the current directory is already initialized which is indicated
-		by the presence of .mm directory, we print an error accordingly.
-
-		TODO: Add reinitialization with --force flag
-	*/
-	if exist, err := utils.IsFilePresent(configDirPath); err != nil {
-		return err
-	} else if exist {
-		return &cmderror.AlreadyInitPath{}
-	}
-
-	err = os.Mkdir(configDirPath, 0755)
-	if err != nil {
-		return err
-	}
-
-	configFilePath := filepath.Join(configDirPath, utils.ConfigFileName)
-
-	_, err = os.Create(configFilePath)
-	if err != nil {
-		return err
-	}
-
-	dataFilePath := filepath.Join(configDirPath, utils.DataFileName)
-	_, err = os.Create(dataFilePath)
-	if err != nil {
-		return err
-	}
-
-	/*
-		Write init info into config.json as json
-	*/
-	config := config.Config{RootPath: dirPath}
-	data, err := json.Marshal(config)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(configFilePath, data, 0666)
-	if err != nil {
-		return err
-	}
-
-	rw, err := storage.NewFileStorageRW(dataFilePath)
-	if err != nil {
-		return err
-	}
-
-	mg := &dataPkg.DirTreeManager{}
-	err = mg.MergeNodeWithPath(dirPath)
-	if err != nil {
-		return err
-	}
-
-	err = rw.Write(mg.Root)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

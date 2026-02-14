@@ -68,18 +68,42 @@ func TestTagAddAndGetE2E(t *testing.T) {
 		require.NoError(t, err)
 
 		for i, l := range locs {
-			result, err := tagGetInternal("default", tags[i])
+			result, err := tagSearchInternal("default", tags[i])
 			require.NoError(t, err)
 			require.Equal(t, 1, len(result))
 			require.Equal(t, l, result[0])
 		}
 
-		result, err := tagGetInternal("default", "Hello World")
+		result, err := tagSearchInternal("default", "Hello World")
 		require.NoError(t, err)
 		require.Equal(t, 2, len(result))
 		sort.Strings(result)
 		require.Equal(t, result[0], loc)
 		require.Equal(t, result[1], loc3)
+
+		getResult, err := tagGetInternal("default", loc)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(getResult))
+		sort.Strings(getResult)
+		require.Equal(t, getResult[0], "Hello World")
+		require.Equal(t, getResult[1], tags[0])
+
+		getResult, err = tagGetInternal("default", loc3)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(getResult))
+		sort.Strings(getResult)
+		require.Equal(t, getResult[1], "Hello World")
+		require.Equal(t, getResult[0], tags[2])
+
+		getResult, err = tagGetInternal("default", loc2)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(getResult))
+		require.Equal(t, getResult[0], tags[1])
+
+		getResult, err = tagGetInternal("default", loc4)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(getResult))
+		require.Equal(t, getResult[0], tags[3])
 	}
 	testExectutor := utils.NewDirLifeCycleTester(t, dirStructure, testExecFunc)
 	testExectutor.Execute()
