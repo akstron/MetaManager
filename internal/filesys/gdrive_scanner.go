@@ -19,11 +19,11 @@ const driveShortcutMimeType = "application/vnd.google-apps.shortcut"
 
 // GDriveScanner scans Google Drive directories.
 type GDriveScanner struct {
-	svc *services.GDriveService
+	svc services.GDriveServiceInterface
 }
 
 // NewGDriveScanner creates a new GDriveScanner with the given service.
-func NewGDriveScanner(svc *services.GDriveService) *GDriveScanner {
+func NewGDriveScanner(svc services.GDriveServiceInterface) *GDriveScanner {
 	return &GDriveScanner{svc: svc}
 }
 

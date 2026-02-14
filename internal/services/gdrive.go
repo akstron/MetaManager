@@ -37,10 +37,22 @@ func EmbeddedCredentials() []byte {
 	return embeddedCredentials
 }
 
+// GDriveServiceInterface defines the interface for Google Drive operations.
+// This allows for mocking in tests.
+type GDriveServiceInterface interface {
+	ListFolder(ctx context.Context, folderID string) ([]RootEntry, error)
+	ListRoot(ctx context.Context) ([]RootEntry, error)
+	ResolvePath(ctx context.Context, path string) (folderID string, err error)
+	ListAtPath(ctx context.Context, path string) ([]RootEntry, error)
+}
+
 // GDriveService authenticates with Google Drive using a stored token and lists directory structure.
 type GDriveService struct {
 	svc *drive.Service
 }
+
+// Ensure GDriveService implements GDriveServiceInterface
+var _ GDriveServiceInterface = (*GDriveService)(nil)
 
 // RootEntry represents a single file or folder in Google Drive (used for any directory listing).
 type RootEntry struct {
