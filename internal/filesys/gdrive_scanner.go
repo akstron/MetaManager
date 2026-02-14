@@ -46,25 +46,24 @@ func (g *GDriveScanner) Scan(path string) (*ds.TreeNode, error) {
 // Make sure that GDriveScanner implements Scanner
 var _ Scanner = (*GDriveScanner)(nil)
 
-// TrackGDrive builds a subtree from a Google Drive path. Path is like "/" for root or "/Folder/SubFolder".
-// If recursive is true, recurses into all subfolders (up to maxTrackDepth).
-// Shortcuts or shared folders that create cycles are skipped to avoid infinite recursion.
 func (g *GDriveScanner) TrackGDrive(ctx context.Context, drivePath string, recursive bool) (*ds.TreeNode, error) {
 	logrus.Debugf("[track-gdrive] TrackGDrive start path=%q recursive=%v", drivePath, recursive)
 	if g.svc == nil {
 		return nil, &cmderror.InvalidOperation{}
 	}
-	drivePath = strings.Trim(drivePath, "/")
+	drivePath = strings.Trim(drivePath, file.GDrivePathPrefix)
 	folderID, err := g.svc.ResolvePath(ctx, drivePath)
 	if err != nil {
 		logrus.Debugf("[track-gdrive] ResolvePath error: %v", err)
 		return nil, err
 	}
+
 	logrus.Debugf("[track-gdrive] resolved folderID=%q", folderID)
 	baseVirtual := file.GDrivePathPrefix
 	if drivePath != "" {
 		baseVirtual = file.GDrivePathPrefix + drivePath
 	}
+
 	visited := make(map[string]bool)
 	visited[folderID] = true // avoid cycling back to root
 	return g.trackGDriveFolder(ctx, folderID, baseVirtual, recursive, 0, visited)

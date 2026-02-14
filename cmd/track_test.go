@@ -187,25 +187,25 @@ func TestTrackCmdGDrive(t *testing.T) {
 	tracker := filesyspkg.NewGDriveTracker(mockSvc)
 
 	// Test tracking root (non-recursive)
-	tree, err := tracker.Track("/")
+	tree, err := tracker.Track("gdrive:/")
 	require.NoError(t, err)
 	require.NotNil(t, tree)
 	info, ok := tree.Info.(*file.FileNode)
 	require.True(t, ok)
 	require.Equal(t, file.GDrivePathPrefix, info.AbsPath)
-	require.Len(t, tree.Children, 0) // Folder1 and file1
+	require.Len(t, tree.Children, 0) // Non-recursive, so no children
 
 	// Test tracking a folder (non-recursive)
-	tree2, err := tracker.Track("/Folder1")
+	tree2, err := tracker.Track("gdrive:/Folder1")
 	require.NoError(t, err)
 	require.NotNil(t, tree2)
 	info2, ok := tree2.Info.(*file.FileNode)
 	require.True(t, ok)
 	require.Equal(t, file.GDrivePathPrefix+"Folder1", info2.AbsPath)
-	require.Len(t, tree2.Children, 0) // Sub and file2
+	require.Len(t, tree2.Children, 0) // Non-recursive, so no children
 
 	// Test tracking recursively
-	tree3, err := tracker.Track("/Folder1*")
+	tree3, err := tracker.Track("gdrive:/Folder1*")
 	require.NoError(t, err)
 	require.NotNil(t, tree3)
 	require.Len(t, tree3.Children, 2)
@@ -221,7 +221,7 @@ func TestTrackCmdGDrive(t *testing.T) {
 	require.NotNil(t, subNode, "Sub folder should be found")
 
 	// Test tracking root recursively
-	tree4, err := tracker.Track("/*")
+	tree4, err := tracker.Track("gdrive:/*")
 	require.NoError(t, err)
 	require.NotNil(t, tree4)
 	require.Len(t, tree4.Children, 2) // Folder1 and file1

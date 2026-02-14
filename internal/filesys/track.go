@@ -2,6 +2,7 @@ package filesys
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -51,23 +52,25 @@ func NewGDriveTracker(svc services.GDriveServiceInterface) *GDriveTracker {
 	return &GDriveTracker{svc: svc}
 }
 
+// The path should be an absolute path like "gdrive:/Folder/SubFolder" or "gdrive:/".
 func (g *GDriveTracker) Track(path string) (*ds.TreeNode, error) {
 	if len(path) == 0 {
 		return nil, &cmderror.InvalidPath{}
+	}
+
+	if !file.IsGDrivePath(path) {
+		return nil, fmt.Errorf("path is not a Google Drive path: %s. It should be like 'gdrive:/Folder/SubFolder' or 'gdrive:/'", path)
 	}
 
 	scanner := NewGDriveScanner(g.svc)
 	ctx := context.Background()
 
 	if path[len(path)-1] != '*' {
-		rootDirPath := path
-		rootDirPath = strings.Trim(rootDirPath, "/")
-		rootDirPath = file.GDrivePathPrefix + rootDirPath
-		return file.CreateTreeNodeFromPath(rootDirPath)
+		return file.CreateTreeNodeFromPath(path)
 	}
 
 	// Non-recursive tracking: just create a node for the path
-	drivePath, _ := scanner.NormalizeTrackPath(path)
+	drivePath := strings.TrimSuffix(path, "*")
 	return scanner.TrackGDrive(ctx, drivePath, true)
 }
 

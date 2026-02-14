@@ -11,6 +11,7 @@ import (
 )
 
 type Resolver interface {
+	// Resolver should give the absolute path for both gdrive and local paths.
 	Resolve(path string) (string, error)
 }
 
