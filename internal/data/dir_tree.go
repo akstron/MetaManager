@@ -35,6 +35,8 @@ func BuildCopyTree(rootPath string, treeNodes []*ds.TreeNode) (*DirTreeManager, 
 
 	for _, node := range treeNodes {
 		copyNode := *node
+		copyNode.Children = []*ds.TreeNode{}
+		copyNode.Info = node.Info
 		copyTreeNodes = append(copyTreeNodes, &copyNode)
 	}
 

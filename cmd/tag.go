@@ -10,11 +10,13 @@ import (
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
 	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
 	"github.com/heroku/self/MetaManager/internal/filesys"
+	"github.com/heroku/self/MetaManager/internal/printer"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
-
 	"github.com/jedib0t/go-pretty/v6/list"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -33,6 +35,9 @@ func init() {
 	tagCmd.AddCommand(tagDeleteCmd)
 	tagCmd.AddCommand(searchTagCmd)
 	tagCmd.AddCommand(tagListCmd)
+
+	// Register flags for searchTag command
+	searchTagCmd.Flags().BoolP("tree", "t", false, "Output results in tree format")
 }
 
 // tagAddInternal adds a tag to a file/directory
@@ -205,11 +210,12 @@ func tagSearchInternal(ctxName, tag string) ([]string, error) {
 	return paths, nil
 }
 
-func tagSearch(_ *cobra.Command, args []string) {
+func tagSearch(cmd *cobra.Command, args []string) {
 	var err error
 	var paths []string
 	var pr list.Writer
 	var ctxName string
+	var treeFlag bool
 
 	if len(args) != 1 {
 		err = &cmderror.InvalidNumberOfArguments{}
@@ -225,9 +231,23 @@ func tagSearch(_ *cobra.Command, args []string) {
 		goto finally
 	}
 
+	treeFlag, err = cmd.Flags().GetBool("tree")
+	if err != nil {
+		goto finally
+	}
+
 	paths, err = tagSearchInternal(ctxName, args[0])
 	if err != nil {
 		goto finally
+	}
+
+	if treeFlag {
+		logrus.Debugf("[tagSearch] treeFlag is true")
+		err = tagSearchTreeInternal(ctxName, args[0], paths)
+		if err != nil {
+			goto finally
+		}
+		return
 	}
 
 	pr = list.NewWriter()
@@ -244,11 +264,65 @@ finally:
 	}
 }
 
+// tagSearchTreeInternal prints tagged nodes in tree format
+func tagSearchTreeInternal(ctxName, tag string, paths []string) error {
+	rw, err := storage.GetRW(ctxName)
+	if err != nil {
+		return err
+	}
+
+	root, err := rw.Read()
+	if err != nil {
+		return err
+	}
+
+	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
+
+	// Get root path for building the tree
+	rootInfo, ok := root.Info.(file.NodeInformable)
+	if !ok {
+		return fmt.Errorf("root info is not a NodeInformable")
+	}
+	rootPath := rootInfo.GetAbsPath()
+	logrus.Debugf("[tagSearchTreeInternal] Root path: %s", rootPath)
+	// Find tree nodes for each tagged path
+	treeNodes := []*ds.TreeNode{}
+	for _, path := range paths {
+		node, err := drMg.FindTreeNodeByAbsPath(path)
+		if err != nil {
+			// Skip paths that don't exist in the tree
+			continue
+		}
+		logrus.Debugf("[tagSearchTreeInternal] Found node: %s", node.Info.(file.NodeInformable).GetAbsPath())
+		treeNodes = append(treeNodes, node)
+	}
+
+	if len(treeNodes) == 0 {
+		fmt.Println("No tagged nodes found")
+		return nil
+	}
+
+	// Build a tree from the found nodes
+	drMgFound, err := data.BuildCopyTree(rootPath, treeNodes)
+	if err != nil {
+		return err
+	}
+
+	// Print the tree
+	pr := printer.NewTreePrinterManager(drMgFound.TreeManager)
+	err = pr.TrPrint([]string{"node"})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // searchTagCmd represents the searchTag command
 var searchTagCmd = &cobra.Command{
 	Use:     "searchTag",
 	Short:   "Gets files/dirs with a particular tag",
-	Long:    `Gets files/dirs with a particular tag`,
+	Long:    `Gets files/dirs with a particular tag. Use --tree flag to output results in tree format.`,
 	Run:     tagSearch,
 	Aliases: []string{"search"},
 }
