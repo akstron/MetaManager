@@ -18,7 +18,6 @@ import (
 	"github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/printer"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
-	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
@@ -67,7 +66,10 @@ func trackInternal(ctxName, pathExp string) error {
 		}
 	} else if isTrackGDriveByContext(pathExp) && !file.IsGDrivePath(pathExp) && pathExp[0] != '/' {
 		// Other relative paths in gdrive context: resolve against Drive cwd.
-		cwd, _ := defaultStore.GetGDriveCwd()
+		cwd, err := defaultStore.GetGDriveCwd()
+		if err != nil {
+			return fmt.Errorf("get gdrive cwd: %w", err)
+		}
 		pathExp = contextrepo.ResolveGDrivePath(cwd, pathExp)
 		logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
 	}
@@ -161,21 +163,8 @@ func isTrackGDriveByContext(pathExp string) bool {
 }
 
 func trackGDrive(pathExp string) (*ds.TreeNode, error) {
-	if len(embeddedCredentials) == 0 {
-		return nil, fmt.Errorf("no embedded credentials; rebuild with credentials.json for Drive tracking")
-	}
-	tokenPath, err := resolveTokenPath()
-	if err != nil {
-		return nil, err
-	}
-	if _, err := os.Stat(tokenPath); err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("token not found; run \"PathTracer login\" first for Drive")
-		}
-		return nil, err
-	}
 	ctx := context.Background()
-	svc, err := services.NewGDriveServiceFromTokenPath(ctx, tokenPath, embeddedCredentials)
+	svc, err := GetGDriveService(ctx)
 	if err != nil {
 		return nil, err
 	}

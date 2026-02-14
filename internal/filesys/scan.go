@@ -10,6 +10,17 @@ import (
 	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
+type Scanner interface {
+	Scan(path string) (*ds.TreeNode, error)
+}
+
+func NewUnixFileSystemScanner() *UnixFileSystemScanner {
+	return &UnixFileSystemScanner{}
+}
+
+type UnixFileSystemScanner struct {
+}
+
 type ScannableCxt map[string]any
 
 type ScannableNode interface {
@@ -17,6 +28,31 @@ type ScannableNode interface {
 	EvalNode(ScannableCxt) error
 	ConstructTreeNode() (*ds.TreeNode, error)
 	GetChildren() ([]ScannableNode, []ScannableCxt, error)
+}
+
+// TODO: Implement this
+type GDriveScannableNode struct {
+	strAbsPath string
+	cTreeNode  *ds.TreeNode
+	children   []ScannableNode
+}
+
+func NewGDriveScannableNode(absPath string) *GDriveScannableNode {
+	return &GDriveScannableNode{
+		strAbsPath: absPath,
+	}
+}
+
+func (g *GDriveScannableNode) EvalNode(cxt ScannableCxt) error {
+	return nil
+}
+
+func (g *GDriveScannableNode) ConstructTreeNode() (*ds.TreeNode, error) {
+	return g.cTreeNode, nil
+}
+
+func (g *GDriveScannableNode) GetChildren() ([]ScannableNode, []ScannableCxt, error) {
+	return g.children, nil, nil
 }
 
 // File System Scanner
@@ -79,9 +115,6 @@ func (f *FSScannableNode) EvalNode(cxt ScannableCxt) error {
 	return nil
 }
 
-type GDriveScannableNode struct {
-}
-
 func ScanDirectoryV2(dirPath string) (*ds.TreeNode, error) {
 	present, err := utils.IsFilePresent(dirPath)
 	if err != nil {
@@ -124,68 +157,6 @@ func scanDirV2(sc ScannableNode, scCxt ScannableCxt) (*ds.TreeNode, error) {
 			return nil, err
 		}
 		curTreeNode.AddChild(childTreeNode)
-	}
-
-	return curTreeNode, nil
-}
-
-func scanFile(fn *file.FileNode, handler ScanningHandler) (*ds.TreeNode, error) {
-	return &ds.TreeNode{
-		Info: fn,
-	}, nil
-}
-
-func scanDir(fn *file.FileNode, handler ScanningHandler) (*ds.TreeNode, error) {
-	curTreeNode := &ds.TreeNode{
-		Info: fn,
-	}
-
-	entries, err := os.ReadDir(fn.GetAbsPath())
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range entries {
-		// var curNode Node
-		fileEntry, err := entry.Info()
-		if err != nil {
-			return nil, err
-		}
-
-		absEntryPath, err := filepath.Abs(fn.GetAbsPath() + "/" + entry.Name())
-		if err != nil {
-			return nil, err
-		}
-
-		// TODO: Implement some common function (probably)
-		if entry.IsDir() {
-			dirNode := &file.FileNode{
-				GeneralNode: file.NewGeneralNode(absEntryPath, fileEntry),
-			}
-
-			if childNode, err := scanDir(dirNode, handler); err != nil {
-				return nil, err
-			} else {
-				err = handler.Handle(curTreeNode, childNode)
-				if err != nil {
-					return nil, err
-				}
-			}
-		} else {
-			fileNode := &file.FileNode{
-				GeneralNode: file.NewGeneralNode(absEntryPath, fileEntry),
-			}
-
-			if childNode, err := scanFile(fileNode, handler); err != nil {
-				return nil, err
-			} else {
-				err = handler.Handle(curTreeNode, childNode)
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
-		// TODO: Convert this to BFS
 	}
 
 	return curTreeNode, nil

@@ -1,10 +1,11 @@
 package filesys
 
 import (
-	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/cmderror"
-	"github.com/heroku/self/MetaManager/internal/file"
 	"path/filepath"
+
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
 )
 
 /*

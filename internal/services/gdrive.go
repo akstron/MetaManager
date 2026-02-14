@@ -3,10 +3,13 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/googleauth"
+	"github.com/heroku/self/MetaManager/internal/utils"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
@@ -17,7 +20,22 @@ const (
 	DriveRootID = "root"
 	// DriveFolderMimeType is the MIME type for Drive folders.
 	DriveFolderMimeType = "application/vnd.google-apps.folder"
+	// GoogleTokenFileName is the name of the file where the OAuth token is stored (in base dir).
+	GoogleTokenFileName = "google_token.json"
 )
+
+// embeddedCredentials is set by main when credentials.json is embedded in the binary (via SetEmbeddedCredentials).
+var embeddedCredentials []byte
+
+// SetEmbeddedCredentials sets the credentials JSON embedded in the binary. Call from main after embedding credentials.json.
+func SetEmbeddedCredentials(b []byte) {
+	embeddedCredentials = b
+}
+
+// EmbeddedCredentials returns the embedded credentials JSON (for use by login flow). Returns nil if not set.
+func EmbeddedCredentials() []byte {
+	return embeddedCredentials
+}
 
 // GDriveService authenticates with Google Drive using a stored token and lists directory structure.
 type GDriveService struct {
@@ -55,6 +73,34 @@ func NewGDriveServiceFromTokenPath(ctx context.Context, tokenPath string, creden
 		return nil, fmt.Errorf("load token from %q: %w", tokenPath, err)
 	}
 	return NewGDriveService(ctx, config, token)
+}
+
+// TokenPath returns the path to the Google OAuth token file (in base dir: executable dir or MM_TEST_CONTEXT_DIR).
+func TokenPath() (string, error) {
+	baseDir, err := utils.GetBaseDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(baseDir, GoogleTokenFileName), nil
+}
+
+// GetGDriveService discovers the token path and uses embedded credentials to return a GDrive service.
+// Call SetEmbeddedCredentials from main first. The token file must exist (run login first).
+func GetGDriveService(ctx context.Context) (*GDriveService, error) {
+	if len(embeddedCredentials) == 0 {
+		return nil, fmt.Errorf("no credentials; rebuild the binary with credentials.json for Drive")
+	}
+	tokenPath, err := TokenPath()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := os.Stat(tokenPath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("token not found at %q; run login first for Drive", tokenPath)
+		}
+		return nil, err
+	}
+	return NewGDriveServiceFromTokenPath(ctx, tokenPath, embeddedCredentials)
 }
 
 // ListFolder returns the immediate children of the given folder (by Drive file ID), excluding trashed items.

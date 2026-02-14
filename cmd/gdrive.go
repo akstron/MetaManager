@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
@@ -125,24 +124,10 @@ func runContextCd(cmd *cobra.Command, args []string) error {
 }
 
 func runGDriveList(cmd *cobra.Command, args []string) error {
-	if len(embeddedCredentials) == 0 {
-		return fmt.Errorf("no embedded credentials; rebuild the binary with credentials.json")
-	}
-	tokenPath, err := resolveTokenPath()
-	if err != nil {
-		return err
-	}
-	if _, err := os.Stat(tokenPath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("token not found at %q; run \"PathTracer login\" first", tokenPath)
-		}
-		return err
-	}
-
 	ctx := context.Background()
-	svc, err := services.NewGDriveServiceFromTokenPath(ctx, tokenPath, embeddedCredentials)
+	svc, err := GetGDriveService(ctx)
 	if err != nil {
-		return fmt.Errorf("create drive service: %w", err)
+		return err
 	}
 
 	// Default: list root. Arg can be path (contains "/" or empty) or folder ID.
@@ -219,24 +204,10 @@ func runGDriveCd(cmd *cobra.Command, args []string) error {
 }
 
 func runGDriveLs(cmd *cobra.Command, args []string) error {
-	if len(embeddedCredentials) == 0 {
-		return fmt.Errorf("no embedded credentials; rebuild the binary with credentials.json")
-	}
-	tokenPath, err := resolveTokenPath()
-	if err != nil {
-		return err
-	}
-	if _, err := os.Stat(tokenPath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("token not found at %q; run \"PathTracer login\" first", tokenPath)
-		}
-		return err
-	}
-
 	ctx := context.Background()
-	svc, err := services.NewGDriveServiceFromTokenPath(ctx, tokenPath, embeddedCredentials)
+	svc, err := GetGDriveService(ctx)
 	if err != nil {
-		return fmt.Errorf("create drive service: %w", err)
+		return err
 	}
 
 	cwd, err := defaultStore.GetGDriveCwd()

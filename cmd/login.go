@@ -1,25 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/heroku/self/MetaManager/internal/googleauth"
+	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/spf13/cobra"
 )
-
-const (
-	googleTokenFileName = "google_token.json"
-)
-
-// EmbeddedCredentials is set by main when credentials.json is embedded in the binary.
-var embeddedCredentials []byte
-
-// SetEmbeddedCredentials sets the credentials JSON embedded in the binary (called from main).
-func SetEmbeddedCredentials(b []byte) {
-	embeddedCredentials = b
-}
 
 // loginCmd runs Google OAuth (desktop flow) and stores the token next to the binary.
 var loginCmd = &cobra.Command{
@@ -34,10 +22,11 @@ func init() {
 }
 
 func runLogin(cmd *cobra.Command, args []string) error {
-	if len(embeddedCredentials) == 0 {
+	creds := services.EmbeddedCredentials()
+	if len(creds) == 0 {
 		return fmt.Errorf("no embedded credentials; rebuild the binary with credentials.json")
 	}
-	config, err := googleauth.LoadConfigFromBytes(embeddedCredentials)
+	config, err := googleauth.LoadConfigFromBytes(creds)
 	if err != nil {
 		return fmt.Errorf("load credentials: %w", err)
 	}
@@ -47,7 +36,7 @@ func runLogin(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("login flow: %w", err)
 	}
 
-	tokenPath, err := resolveTokenPath()
+	tokenPath, err := services.TokenPath()
 	if err != nil {
 		return err
 	}
@@ -59,12 +48,7 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// resolveTokenPath returns the path to google_token.json in the same directory as the executable.
-func resolveTokenPath() (string, error) {
-	execPath, err := os.Executable()
-	if err != nil {
-		return "", fmt.Errorf("get executable path: %w", err)
-	}
-	execDir := filepath.Dir(execPath)
-	return filepath.Join(execDir, googleTokenFileName), nil
+// GetGDriveService returns a GDrive service (uses credentials set in services via SetEmbeddedCredentials from main).
+func GetGDriveService(ctx context.Context) (*services.GDriveService, error) {
+	return services.GetGDriveService(ctx)
 }

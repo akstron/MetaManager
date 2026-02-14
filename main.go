@@ -7,12 +7,13 @@ import (
 	_ "embed"
 
 	"github.com/heroku/self/MetaManager/cmd"
+	"github.com/heroku/self/MetaManager/internal/services"
 )
 
 //go:embed credentials.json
 var embeddedCredentials []byte
 
 func main() {
-	cmd.SetEmbeddedCredentials(embeddedCredentials)
+	services.SetEmbeddedCredentials(embeddedCredentials)
 	cmd.Execute()
 }
