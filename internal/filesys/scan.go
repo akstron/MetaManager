@@ -1,17 +1,29 @@
 package filesys
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
 type Scanner interface {
 	Scan(path string) (*ds.TreeNode, error)
+}
+
+func CreateScannerFromContextType(contextType string) (Scanner, error) {
+	switch contextType {
+	case "local":
+		return NewUnixFileSystemScanner(), nil
+	case "gdrive":
+		return createGDriveScanner()
+	}
+	return nil, &cmderror.InvalidOperation{}
 }
 
 func NewUnixFileSystemScanner() *UnixFileSystemScanner {
@@ -20,6 +32,33 @@ func NewUnixFileSystemScanner() *UnixFileSystemScanner {
 
 type UnixFileSystemScanner struct {
 }
+
+func (u *UnixFileSystemScanner) Scan(path string) (*ds.TreeNode, error) {
+	return ScanDirectoryV2(path)
+}
+
+// Make sure that UnixFileSystemScanner implements Scanner
+var _ Scanner = (*UnixFileSystemScanner)(nil)
+
+type GDriveScanner struct {
+	svc *services.GDriveService
+}
+
+func createGDriveScanner() (*GDriveScanner, error) {
+	svc, err := services.GetGDriveService(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &GDriveScanner{svc: svc}, nil
+}
+
+func (g *GDriveScanner) Scan(path string) (*ds.TreeNode, error) {
+	ctx := context.Background()
+	return TrackGDrive(ctx, path, false, g.svc)
+}
+
+// Make sure that GDriveScanner implements Scanner
+var _ Scanner = (*GDriveScanner)(nil)
 
 type ScannableCxt map[string]any
 

@@ -74,14 +74,16 @@ func trackInternal(ctxName, pathExp string) error {
 		logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
 	}
 
-	var subTree *ds.TreeNode
-	if file.IsGDrivePath(pathExp) || isTrackGDriveByContext(pathExp) {
-		logrus.Debugf("[track] using gdrive track path=%q", pathExp)
-		subTree, err = trackGDrive(pathExp)
-	} else {
-		logrus.Debugf("[track] using local track path=%q", pathExp)
-		subTree, err = filesys.Track(pathExp)
-	}
+	// var subTree *ds.TreeNode
+	// if file.IsGDrivePath(pathExp) || isTrackGDriveByContext(pathExp) {
+	// 	logrus.Debugf("[track] using gdrive track path=%q", pathExp)
+	// 	subTree, err = trackGDrive(pathExp)
+	// } else {
+	// 	logrus.Debugf("[track] using local track path=%q", pathExp)
+	// 	subTree, err = filesys.Track(pathExp)
+	// }
+	tracker := filesys.NewContextAwareTracker(contextrepo.NewContextRepositoryImpl(nil))
+	subTree, err := tracker.Track(pathExp)
 	if err != nil {
 		logrus.Debugf("[track] track (gdrive/local) error: %v", err)
 		return err

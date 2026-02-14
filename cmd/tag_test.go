@@ -6,6 +6,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/require"
@@ -14,6 +15,9 @@ import (
 func InitializeRootAndScan(rootPath string) error {
 	os.Setenv("MM_TEST_CONTEXT_DIR", rootPath)
 	os.Setenv("MM_CONTEXT", "default")
+	if err := defaultStore.Create("default", filesys.TypeLocal); err != nil {
+		return err
+	}
 	if err := EnsureAppDataDir("default"); err != nil {
 		return err
 	}

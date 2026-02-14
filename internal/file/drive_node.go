@@ -30,8 +30,6 @@ func NewDriveFileNode(virtualPath, driveId string) *ds.TreeNode {
 	})
 }
 
-// CreateTreeNodeFromPath creates a node from a path. For paths starting with GDrivePathPrefix
-// it creates a FileNode without calling os.Stat (defaults to dir for path-segment creation).
 func CreateTreeNodeFromPath(path string) (*ds.TreeNode, error) {
 	// Normal file node
 	return &ds.TreeNode{
