@@ -8,6 +8,7 @@ import (
 
 // GDrivePathPrefix is the virtual path prefix for Google Drive nodes (e.g. "gdrive:/Folder/file").
 const GDrivePathPrefix = "gdrive:/"
+const GDrivePathRoot = "gdrive:"
 
 // IsGDrivePath returns true if path is a Drive virtual path.
 func IsGDrivePath(path string) bool {

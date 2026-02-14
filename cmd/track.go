@@ -6,10 +6,7 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"runtime/debug"
-	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
@@ -50,28 +47,34 @@ func trackInternal(ctxName, pathExp string) error {
 	logrus.Debugf("[track] current root path: %q", info.GetAbsPath())
 
 	// Resolve "." and relative paths before any logic.
-	if pathExp == "." || pathExp == "" {
-		if isTrackGDriveByContext(pathExp) {
-			cwd, _ := defaultStore.GetGDriveCwd()
-			logrus.Debugf("[track] gdrive cwd: %q", cwd)
-			pathExp = contextrepo.ResolveGDrivePath(cwd, ".")
-			logrus.Debugf("[track] resolved . to gdrive cwd: %q", pathExp)
-		} else {
-			abs, err := filepath.Abs(".")
-			if err != nil {
-				return fmt.Errorf("resolve current directory: %w", err)
-			}
-			pathExp = abs
-			logrus.Debugf("[track] resolved . to local path: %q", pathExp)
-		}
-	} else if isTrackGDriveByContext(pathExp) {
-		// Other relative paths in gdrive context: resolve against Drive cwd.
-		cwd, err := defaultStore.GetGDriveCwd()
-		if err != nil {
-			return fmt.Errorf("get gdrive cwd: %w", err)
-		}
-		pathExp = contextrepo.ResolveGDrivePath(cwd, pathExp)
-		logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
+	// if pathExp == "." || pathExp == "" {
+	// 	if isTrackGDriveByContext(pathExp) {
+	// 		cwd, _ := defaultStore.GetGDriveCwd()
+	// 		logrus.Debugf("[track] gdrive cwd: %q", cwd)
+	// 		pathExp = filesys.ResolveGDrivePath(cwd, ".")
+	// 		logrus.Debugf("[track] resolved . to gdrive cwd: %q", pathExp)
+	// 	} else {
+	// 		abs, err := filepath.Abs(".")
+	// 		if err != nil {
+	// 			return fmt.Errorf("resolve current directory: %w", err)
+	// 		}
+	// 		pathExp = abs
+	// 		logrus.Debugf("[track] resolved . to local path: %q", pathExp)
+	// 	}
+	// } else if isTrackGDriveByContext(pathExp) {
+	// 	// Other relative paths in gdrive context: resolve against Drive cwd.
+	// 	cwd, err := defaultStore.GetGDriveCwd()
+	// 	if err != nil {
+	// 		return fmt.Errorf("get gdrive cwd: %w", err)
+	// 	}
+	// 	pathExp = filesys.ResolveGDrivePath(cwd, pathExp)
+	// 	logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
+	// }
+
+	resolver := filesys.NewBasicResolver(defaultStore)
+	resolvedPath, err := resolver.Resolve(pathExp)
+	if err != nil {
+		return err
 	}
 
 	tracker, err := filesys.GetTrackerFromContext(defaultStore)
@@ -79,7 +82,7 @@ func trackInternal(ctxName, pathExp string) error {
 		return err
 	}
 
-	subTree, err := tracker.Track(pathExp)
+	subTree, err := tracker.Track(resolvedPath)
 	if err != nil {
 		logrus.Debugf("[track] track (gdrive/local) error: %v", err)
 		return err
@@ -114,21 +117,10 @@ func trackShowInternal(ctxName string, tagFlag, idFlag bool) error {
 	if err != nil {
 		return err
 	}
-	var dirPath string
-	ctxType, err := GetContextType(ctxName)
-	if err == nil && ctxType == contextrepo.TypeGDrive {
-		cwd, _ := defaultStore.GetGDriveCwd()
-		resolved := contextrepo.ResolveGDrivePath(cwd, ".")
-		if resolved == "/" {
-			dirPath = file.GDrivePathPrefix
-		} else {
-			dirPath = file.GDrivePathPrefix + strings.TrimPrefix(resolved, "/")
-		}
-	} else {
-		dirPath, err = os.Getwd()
-		if err != nil {
-			return err
-		}
+	resolver := filesys.NewBasicResolver(defaultStore)
+	dirPath, err := resolver.Resolve(".")
+	if err != nil {
+		return err
 	}
 	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
 	requiredNode, err := drMg.FindTreeNodeByAbsPath(dirPath)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/filesys"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/spf13/cobra"
@@ -195,7 +197,16 @@ func runGDriveCd(cmd *cobra.Command, args []string) error {
 		fmt.Println(cwd)
 		return nil
 	}
-	resolved := contextrepo.ResolveGDrivePath(cwd, args[0])
+	resolver := filesys.NewBasicResolver(defaultStore)
+	resolvedPath, err := resolver.Resolve(args[0])
+	if err != nil {
+		return err
+	}
+	// Strip gdrive:/ prefix for API call
+	resolved := strings.TrimPrefix(resolvedPath, file.GDrivePathPrefix)
+	if resolved == "" {
+		resolved = "/"
+	}
 	if err := defaultStore.SetGDriveCwd(resolved); err != nil {
 		return err
 	}
@@ -220,7 +231,16 @@ func runGDriveLs(cmd *cobra.Command, args []string) error {
 
 	target := cwd
 	if len(args) > 0 {
-		target = contextrepo.ResolveGDrivePath(cwd, args[0])
+		resolver := filesys.NewBasicResolver(defaultStore)
+		resolvedPath, err := resolver.Resolve(args[0])
+		if err != nil {
+			return err
+		}
+		// Strip gdrive:/ prefix for API call
+		target = strings.TrimPrefix(resolvedPath, file.GDrivePathPrefix)
+		if target == "" {
+			target = "/"
+		}
 	}
 
 	displayPath := strings.TrimRight(target, "/")

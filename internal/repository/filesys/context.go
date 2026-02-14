@@ -3,7 +3,6 @@ package filesys
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -336,7 +335,10 @@ func (s *ContextRepositoryImpl) SetGDriveCwd(path string) error {
 }
 
 // normalizeDrivePath returns a path like "/" or "/Folder/Sub" (leading slash, no trailing).
+// This is a local helper that delegates to filesys.NormalizeDrivePath to avoid import cycles.
 func normalizeDrivePath(p string) string {
+	// Import cycle prevention: We can't import filesys here because filesys imports this package.
+	// So we duplicate the logic here. This is acceptable since it's a simple pure function.
 	p = strings.TrimSpace(p)
 	if p == "" || p == "." {
 		return "/"
@@ -347,22 +349,4 @@ func normalizeDrivePath(p string) string {
 		return "/"
 	}
 	return "/" + p
-}
-
-// ResolveGDrivePath resolves target against cwd (absolute path or relative). Returns an absolute path like "/" or "/Folder/Sub".
-// If target starts with "/", it is normalized and returned. Otherwise path.Join(cwd, target) is cleaned and normalized.
-func ResolveGDrivePath(cwd, target string) string {
-	if cwd == "" {
-		cwd = "/"
-	}
-	target = strings.TrimSpace(target)
-	if target == "" || target == "." {
-		return normalizeDrivePath(cwd)
-	}
-	if strings.HasPrefix(target, "/") {
-		return normalizeDrivePath(target)
-	}
-	// Relative: join with cwd and clean (handles ".." and ".")
-	joined := path.Join(cwd, target)
-	return normalizeDrivePath(joined)
 }

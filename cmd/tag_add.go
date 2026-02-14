@@ -5,14 +5,11 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
 	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/file"
-	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	"github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
@@ -32,32 +29,10 @@ func tagAddInternal(ctxName string, args []string) error {
 
 	tgMg := data.NewTagManager(data.NewDirTreeManager(ds.NewTreeManager(root)))
 
-	// Get context type to determine path handling
-	ctxType, err := GetContextType(ctxName)
+	resolver := filesys.NewBasicResolver(defaultStore)
+	tagFilePath, err := resolver.Resolve(args[0])
 	if err != nil {
 		return err
-	}
-
-	var tagFilePath string
-	if ctxType == contextrepo.TypeGDrive {
-		// For gdrive context, resolve relative paths and prefix with gdrive:/
-		cwd, err := defaultStore.GetGDriveCwd()
-		if err != nil {
-			return err
-		}
-		resolved := contextrepo.ResolveGDrivePath(cwd, args[0])
-		// Remove leading slash and prefix with gdrive:/
-		if resolved == "/" {
-			tagFilePath = file.GDrivePathPrefix
-		} else {
-			tagFilePath = file.GDrivePathPrefix + strings.TrimPrefix(resolved, "/")
-		}
-	} else {
-		// For local context, use absolute path
-		tagFilePath, err = filepath.Abs(args[0])
-		if err != nil {
-			return err
-		}
 	}
 
 	tag := args[1]
