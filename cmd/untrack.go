@@ -5,35 +5,29 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/heroku/self/MetaManager/internal/ds"
+
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
-	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/storage"
-	"path/filepath"
+	"github.com/heroku/self/MetaManager/internal/utils"
+	"github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 )
 
+// pathExp would be an absolute path like "/Folder/SubFolder" or "gdrive:/Folder/SubFolder".
 func HandleSubtreeRemoval(ctxName, pathExp string, drMg *data.DirTreeManager) error {
 	if pathExp[len(pathExp)-1] == '*' {
 		dirPath := pathExp[0 : len(pathExp)-1]
-		dirPathAbs, err := filepath.Abs(dirPath)
-		if err != nil {
-			return err
-		}
 
-		err = drMg.SplitChildrenFromPath(dirPathAbs)
+		err := drMg.SplitChildrenFromPath(dirPath)
 		if err != nil {
 			return err
 		}
 
 		return nil
-	}
-
-	dirPathAbs, err := filepath.Abs(pathExp)
-	if err != nil {
-		return err
 	}
 
 	found, rootDirPathAbs, err := utils.FindRootDir(ctxName)
@@ -45,11 +39,11 @@ func HandleSubtreeRemoval(ctxName, pathExp string, drMg *data.DirTreeManager) er
 		return &cmderror.Unexpected{}
 	}
 
-	if dirPathAbs == rootDirPathAbs {
+	if pathExp == rootDirPathAbs {
 		return fmt.Errorf("utracking root folder is not allowed")
 	}
 
-	err = drMg.SplitNodeWithPath(dirPathAbs)
+	err = drMg.SplitNodeWithPath(pathExp)
 	if err != nil {
 		return err
 	}
@@ -70,7 +64,15 @@ func untrackInternal(ctxName, pathExp string) error {
 
 	drMg := data.NewDirTreeManager(ds.NewTreeManager(root))
 
-	err = HandleSubtreeRemoval(ctxName, pathExp, drMg)
+	resolver := filesys.NewBasicResolver(defaultStore)
+	resolvedPath, err := resolver.Resolve(pathExp)
+	if err != nil {
+		return err
+	}
+
+	logrus.Debugf("[untrack] resolvedPath: %q", resolvedPath)
+
+	err = HandleSubtreeRemoval(ctxName, resolvedPath, drMg)
 	if err != nil {
 		return err
 	}

@@ -46,31 +46,6 @@ func trackInternal(ctxName, pathExp string) error {
 	}
 	logrus.Debugf("[track] current root path: %q", info.GetAbsPath())
 
-	// Resolve "." and relative paths before any logic.
-	// if pathExp == "." || pathExp == "" {
-	// 	if isTrackGDriveByContext(pathExp) {
-	// 		cwd, _ := defaultStore.GetGDriveCwd()
-	// 		logrus.Debugf("[track] gdrive cwd: %q", cwd)
-	// 		pathExp = filesys.ResolveGDrivePath(cwd, ".")
-	// 		logrus.Debugf("[track] resolved . to gdrive cwd: %q", pathExp)
-	// 	} else {
-	// 		abs, err := filepath.Abs(".")
-	// 		if err != nil {
-	// 			return fmt.Errorf("resolve current directory: %w", err)
-	// 		}
-	// 		pathExp = abs
-	// 		logrus.Debugf("[track] resolved . to local path: %q", pathExp)
-	// 	}
-	// } else if isTrackGDriveByContext(pathExp) {
-	// 	// Other relative paths in gdrive context: resolve against Drive cwd.
-	// 	cwd, err := defaultStore.GetGDriveCwd()
-	// 	if err != nil {
-	// 		return fmt.Errorf("get gdrive cwd: %w", err)
-	// 	}
-	// 	pathExp = filesys.ResolveGDrivePath(cwd, pathExp)
-	// 	logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
-	// }
-
 	resolver := filesys.NewBasicResolver(defaultStore)
 	resolvedPath, err := resolver.Resolve(pathExp)
 	if err != nil {
