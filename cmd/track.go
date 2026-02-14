@@ -64,7 +64,7 @@ func trackInternal(ctxName, pathExp string) error {
 			pathExp = abs
 			logrus.Debugf("[track] resolved . to local path: %q", pathExp)
 		}
-	} else if isTrackGDriveByContext(pathExp) && !file.IsGDrivePath(pathExp) && pathExp[0] != '/' {
+	} else if isTrackGDriveByContext(pathExp) {
 		// Other relative paths in gdrive context: resolve against Drive cwd.
 		cwd, err := defaultStore.GetGDriveCwd()
 		if err != nil {
@@ -74,15 +74,7 @@ func trackInternal(ctxName, pathExp string) error {
 		logrus.Debugf("[track] resolved relative gdrive path to: %q", pathExp)
 	}
 
-	// var subTree *ds.TreeNode
-	// if file.IsGDrivePath(pathExp) || isTrackGDriveByContext(pathExp) {
-	// 	logrus.Debugf("[track] using gdrive track path=%q", pathExp)
-	// 	subTree, err = trackGDrive(pathExp)
-	// } else {
-	// 	logrus.Debugf("[track] using local track path=%q", pathExp)
-	// 	subTree, err = filesys.Track(pathExp)
-	// }
-	tracker := filesys.NewContextAwareTracker(contextrepo.NewContextRepositoryImpl(nil))
+	tracker := filesys.NewContextAwareTracker(defaultStore)
 	subTree, err := tracker.Track(pathExp)
 	if err != nil {
 		logrus.Debugf("[track] track (gdrive/local) error: %v", err)
@@ -170,8 +162,9 @@ func trackGDrive(pathExp string) (*ds.TreeNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	drivePath, recursive := filesys.NormalizeGDriveTrackPath(pathExp)
-	return filesys.TrackGDrive(ctx, drivePath, recursive, svc)
+	scanner := filesys.NewGDriveScanner(svc)
+	drivePath, recursive := scanner.NormalizeTrackPath(pathExp)
+	return scanner.TrackGDrive(ctx, drivePath, recursive)
 }
 
 func track(cmd *cobra.Command, args []string) {

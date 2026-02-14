@@ -1,38 +1,25 @@
 package filesys
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
-	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
-type Scanner interface {
-	Scan(path string) (*ds.TreeNode, error)
+// UnixFileSystemScanner scans local file system directories.
+type UnixFileSystemScanner struct {
 }
 
-func CreateScannerFromContextType(contextType string) (Scanner, error) {
-	switch contextType {
-	case "local":
-		return NewUnixFileSystemScanner(), nil
-	case "gdrive":
-		return createGDriveScanner()
-	}
-	return nil, &cmderror.InvalidOperation{}
-}
-
+// NewUnixFileSystemScanner creates a new UnixFileSystemScanner.
 func NewUnixFileSystemScanner() *UnixFileSystemScanner {
 	return &UnixFileSystemScanner{}
 }
 
-type UnixFileSystemScanner struct {
-}
-
+// Scan scans a directory path and returns a tree node.
 func (u *UnixFileSystemScanner) Scan(path string) (*ds.TreeNode, error) {
 	return ScanDirectoryV2(path)
 }
@@ -40,82 +27,32 @@ func (u *UnixFileSystemScanner) Scan(path string) (*ds.TreeNode, error) {
 // Make sure that UnixFileSystemScanner implements Scanner
 var _ Scanner = (*UnixFileSystemScanner)(nil)
 
-type GDriveScanner struct {
-	svc *services.GDriveService
-}
-
-func createGDriveScanner() (*GDriveScanner, error) {
-	svc, err := services.GetGDriveService(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	return &GDriveScanner{svc: svc}, nil
-}
-
-func (g *GDriveScanner) Scan(path string) (*ds.TreeNode, error) {
-	ctx := context.Background()
-	return TrackGDrive(ctx, path, false, g.svc)
-}
-
-// Make sure that GDriveScanner implements Scanner
-var _ Scanner = (*GDriveScanner)(nil)
-
-type ScannableCxt map[string]any
-
-type ScannableNode interface {
-	// EvalNode would be called at the beginning of every scan operation
-	EvalNode(ScannableCxt) error
-	ConstructTreeNode() (*ds.TreeNode, error)
-	GetChildren() ([]ScannableNode, []ScannableCxt, error)
-}
-
-// TODO: Implement this
-type GDriveScannableNode struct {
-	strAbsPath string
-	cTreeNode  *ds.TreeNode
-	children   []ScannableNode
-}
-
-func NewGDriveScannableNode(absPath string) *GDriveScannableNode {
-	return &GDriveScannableNode{
-		strAbsPath: absPath,
-	}
-}
-
-func (g *GDriveScannableNode) EvalNode(cxt ScannableCxt) error {
-	return nil
-}
-
-func (g *GDriveScannableNode) ConstructTreeNode() (*ds.TreeNode, error) {
-	return g.cTreeNode, nil
-}
-
-func (g *GDriveScannableNode) GetChildren() ([]ScannableNode, []ScannableCxt, error) {
-	return g.children, nil, nil
-}
-
-// File System Scanner
+// FSScannableNode is a scannable node for the file system.
 type FSScannableNode struct {
 	strAbsPath string
 	cTreeNode  *ds.TreeNode
 	children   []ScannableNode
 }
 
+// NewFSScannableNode creates a new file system scannable node.
 func NewFSScannableNode(absPath string) *FSScannableNode {
 	return &FSScannableNode{
 		strAbsPath: absPath,
 	}
 }
 
+// GetChildren returns the children nodes and their contexts.
 func (f *FSScannableNode) GetChildren() ([]ScannableNode, []ScannableCxt, error) {
 	scCxt := make([]ScannableCxt, len(f.children))
 	return f.children, scCxt, nil
 }
 
+// ConstructTreeNode returns the constructed tree node.
 func (f *FSScannableNode) ConstructTreeNode() (*ds.TreeNode, error) {
 	return f.cTreeNode, nil
 }
 
+// EvalNode evaluates the node by reading file system information.
 func (f *FSScannableNode) EvalNode(cxt ScannableCxt) error {
 	f.children = []ScannableNode{}
 
@@ -154,6 +91,7 @@ func (f *FSScannableNode) EvalNode(cxt ScannableCxt) error {
 	return nil
 }
 
+// ScanDirectoryV2 scans a directory and returns a tree node representation.
 func ScanDirectoryV2(dirPath string) (*ds.TreeNode, error) {
 	present, err := utils.IsFilePresent(dirPath)
 	if err != nil {
@@ -174,6 +112,7 @@ func ScanDirectoryV2(dirPath string) (*ds.TreeNode, error) {
 	return scanDirV2(scNode, scCxt)
 }
 
+// scanDirV2 recursively scans a scannable node and its children.
 func scanDirV2(sc ScannableNode, scCxt ScannableCxt) (*ds.TreeNode, error) {
 	err := sc.EvalNode(scCxt)
 	if err != nil {
