@@ -101,13 +101,16 @@ func (s *ContextRepositoryImpl) ContextsJSONPath() (string, error) {
 	return filepath.Join(dir, contextsJSONFileName), nil
 }
 
-// gdriveCwdPath returns the path to the gdrive_cwd file.
-func (s *ContextRepositoryImpl) gdriveCwdPath() (string, error) {
-	dir, err := s.baseDir()
+// gdriveCwdPath returns the path to the gdrive_cwd file for the given context (.mm/<contextName>/gdrive_cwd).
+func (s *ContextRepositoryImpl) gdriveCwdPath(contextName string) (string, error) {
+	if contextName == "" {
+		return "", fmt.Errorf("context name cannot be empty")
+	}
+	appDir, err := utils.GetAppDataDirForContext(contextName)
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, gdriveCwdFileName), nil
+	return filepath.Join(appDir, gdriveCwdFileName), nil
 }
 
 // LoadContexts reads and parses contexts.json. Returns a nil slice if the file does not exist.
@@ -290,13 +293,17 @@ func (s *ContextRepositoryImpl) GetContextType(name string) (string, error) {
 	return "", nil
 }
 
-// GetGDriveCwd returns the current Google Drive working directory (for shell-style navigation).
-// Env MM_GDRIVE_CWD overrides the gdrive_cwd file. Returns ("", nil) if unset (meaning root "/").
+// GetGDriveCwd returns the current Google Drive working directory for the current context (from .mm/<context>/gdrive_cwd).
+// Env MM_GDRIVE_CWD overrides. Returns ("", nil) if unset or no context (meaning root "/").
 func (s *ContextRepositoryImpl) GetGDriveCwd() (string, error) {
 	if v := os.Getenv(GDriveCwdEnvVar); v != "" {
 		return normalizeDrivePath(v), nil
 	}
-	path, err := s.gdriveCwdPath()
+	ctxName, err := s.GetContext()
+	if err != nil || ctxName == "" {
+		return "", nil
+	}
+	path, err := s.gdriveCwdPath(ctxName)
 	if err != nil {
 		return "", err
 	}
@@ -310,11 +317,19 @@ func (s *ContextRepositoryImpl) GetGDriveCwd() (string, error) {
 	return normalizeDrivePath(strings.TrimSpace(string(b))), nil
 }
 
-// SetGDriveCwd persists the current Google Drive path to the gdrive_cwd file.
+// SetGDriveCwd persists the current Google Drive path to .mm/<currentContext>/gdrive_cwd.
 func (s *ContextRepositoryImpl) SetGDriveCwd(path string) error {
 	path = normalizeDrivePath(path)
-	filePath, err := s.gdriveCwdPath()
+	ctxName, err := s.GetContext()
+	if err != nil || ctxName == "" {
+		return fmt.Errorf("no context set; use 'context set <name>' first")
+	}
+	filePath, err := s.gdriveCwdPath(ctxName)
 	if err != nil {
+		return err
+	}
+	appDir := filepath.Dir(filePath)
+	if err := os.MkdirAll(appDir, 0755); err != nil {
 		return err
 	}
 	return os.WriteFile(filePath, []byte(path), 0600)
