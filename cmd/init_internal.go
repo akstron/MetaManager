@@ -17,7 +17,7 @@ import (
 )
 
 // EnsureAppDataDir creates the .mm/<contextName> directory for the given context (next to the executable
-// or under MM_TEST_CONTEXT_DIR) with config.json, data.json, and ignore.json if it does not exist. Idempotent.
+// or under MM_TEST_CONTEXT_DIR) with config.json and data.json if it does not exist. Idempotent.
 func EnsureAppDataDir(contextName string) error {
 	if contextName == "" {
 		return fmt.Errorf("context name cannot be empty")
@@ -55,11 +55,6 @@ func EnsureAppDataDir(contextName string) error {
 		return err
 	}
 	if err := os.WriteFile(configFilePath, data, 0666); err != nil {
-		return err
-	}
-
-	ignorePath := filepath.Join(appDir, utils.IgnoreFileName)
-	if err := os.WriteFile(ignorePath, []byte("[]"), 0666); err != nil {
 		return err
 	}
 
@@ -123,13 +118,6 @@ func InitRoot(loc string) error {
 	configFilePath := filepath.Join(configDirPath, utils.ConfigFileName)
 
 	_, err = os.Create(configFilePath)
-	if err != nil {
-		return err
-	}
-
-	configFileIgnorePath := filepath.Join(configDirPath, utils.IgnoreFileName)
-
-	_, err = os.Create(configFileIgnorePath)
 	if err != nil {
 		return err
 	}

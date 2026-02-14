@@ -65,7 +65,7 @@ func TestTrackCmd(t *testing.T) {
 		}
 
 		outputs := []int{
-			2, 3, 8, 8, 8, 17, // last: root + "*" (includes .mm created under root for context)
+			2, 3, 8, 8, 8, 16, // last: root + "*" (tracked nodes under root)
 		}
 
 		for i, loc := range locs {

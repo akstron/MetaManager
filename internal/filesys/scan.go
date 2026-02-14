@@ -1,13 +1,13 @@
 package filesys
 
 import (
-	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/cmderror"
-	"github.com/heroku/self/MetaManager/internal/config"
-	"github.com/heroku/self/MetaManager/internal/file"
-	"github.com/heroku/self/MetaManager/internal/utils"
 	"os"
 	"path/filepath"
+
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
 type ScannableCxt map[string]any
@@ -127,51 +127,6 @@ func scanDirV2(sc ScannableNode, scCxt ScannableCxt) (*ds.TreeNode, error) {
 	}
 
 	return curTreeNode, nil
-}
-
-// ScanDirectory scans a directory; mmDirPath is the .mm/<context> dir for ignore rules (can be "").
-func ScanDirectory(dirPath, mmDirPath string) (*ds.TreeNode, error) {
-	present, err := utils.IsFilePresent(dirPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if !present {
-		return nil, &cmderror.InvalidPath{}
-	}
-
-	dirPathAbs, err := filepath.Abs(dirPath)
-	if err != nil {
-		return nil, err
-	}
-
-	root, err := os.Stat(dirPathAbs)
-	if err != nil {
-		return nil, err
-	}
-
-	topDir := &file.FileNode{GeneralNode: file.NewGeneralNode(dirPathAbs, root)}
-
-	igMg, err := config.NewIgnoreManager(mmDirPath)
-	if err != nil {
-		return nil, err
-	}
-
-	igMg.Load()
-	ignorer := NewNodeAbsPathIgnorer(igMg)
-
-	/*
-		TODO: Probably better to pass pointer
-		We will use go routines to accelerate dfs
-	*/
-	handler := NewScanHandler(ignorer)
-
-	topTreeNode, err := scanDir(topDir, handler)
-	if err != nil {
-		return nil, err
-	}
-
-	return topTreeNode, nil
 }
 
 func scanFile(fn *file.FileNode, handler ScanningHandler) (*ds.TreeNode, error) {
