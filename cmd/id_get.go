@@ -5,12 +5,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/heroku/self/MetaManager/internal/ds"
+	"path/filepath"
+
 	"github.com/heroku/self/MetaManager/internal/cmderror"
 	"github.com/heroku/self/MetaManager/internal/data"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/utils"
-	"github.com/heroku/self/MetaManager/internal/storage"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -21,7 +22,7 @@ func getIdInternal(ctxName, path string) error {
 		return err
 	}
 
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}

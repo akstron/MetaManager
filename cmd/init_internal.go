@@ -10,7 +10,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
@@ -70,7 +70,7 @@ func EnsureAppDataDir(contextName string) error {
 		Children: nil,
 	}
 	dataFilePath := filepath.Join(appDir, utils.DataFileName)
-	rw, err := storage.NewFileStorageRW(dataFilePath)
+	rw, err := tree.NewFileStorageRW(dataFilePath)
 	if err != nil {
 		return err
 	}

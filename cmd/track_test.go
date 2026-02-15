@@ -10,8 +10,8 @@ import (
 	filesyspkg "github.com/heroku/self/MetaManager/internal/filesys"
 	servicemocks "github.com/heroku/self/MetaManager/internal/mocks/services"
 	filesys "github.com/heroku/self/MetaManager/internal/repository/context"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/services"
-	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/mock"
@@ -55,7 +55,7 @@ func TestTrackCmd(t *testing.T) {
 		err = EnsureAppDataDir("default")
 		require.NoError(t, err)
 
-		rw, err := storage.GetRW("default")
+		rw, err := tree.GetRW("default")
 		require.NoError(t, err)
 
 		loc := filepath.Join(root, "1_a")

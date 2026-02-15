@@ -15,7 +15,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/printer"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/sirupsen/logrus"
@@ -25,7 +25,7 @@ import (
 func trackInternal(ctxName, pathExp string) error {
 	logrus.Debugf("[track] trackInternal start ctx=%q pathExp=%q", ctxName, pathExp)
 
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		logrus.Debugf("[track] GetRW error: %v", err)
 		return err
@@ -84,7 +84,7 @@ func trackInternal(ctxName, pathExp string) error {
 
 // trackShowInternal lists tracked nodes from the current directory (local cwd or gdrive cwd) in a tree structure.
 func trackShowInternal(ctxName string, tagFlag, idFlag bool) error {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}

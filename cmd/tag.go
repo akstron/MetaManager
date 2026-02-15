@@ -13,7 +13,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/file"
 	"github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/printer"
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/utils"
 	"github.com/jedib0t/go-pretty/v6/list"
 	"github.com/sirupsen/logrus"
@@ -42,7 +42,7 @@ func init() {
 
 // tagAddInternal adds a tag to a file/directory
 func tagAddInternal(ctxName string, args []string) error {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ var tagAddCmd = &cobra.Command{
 
 // tagDeleteInternal deletes a tag from a file/directory
 func tagDeleteInternal(ctxName, path, tag string) error {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ var tagDeleteCmd = &cobra.Command{
 
 // tagGetInternal gets all files/directories with a particular tag
 func tagSearchInternal(ctxName, tag string) ([]string, error) {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ finally:
 
 // tagSearchTreeInternal prints tagged nodes in tree format
 func tagSearchTreeInternal(ctxName, tag string, paths []string) error {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}
@@ -329,7 +329,7 @@ var searchTagCmd = &cobra.Command{
 
 // tagGetInternal lists tags for a file/directory
 func tagGetInternal(ctxName, path string) ([]string, error) {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return nil, err
 	}

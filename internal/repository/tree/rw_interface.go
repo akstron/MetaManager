@@ -1,5 +1,5 @@
-// Package storage provides tree read/write backends (e.g. file-based) for MetaManager.
-package storage
+// Package tree provides tree read/write backends (e.g. file-based) for MetaManager.
+package tree
 
 import "github.com/heroku/self/MetaManager/internal/ds"
 

@@ -10,7 +10,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/data"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/filesys"
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/utils"
 	"github.com/sirupsen/logrus"
 
@@ -52,7 +52,7 @@ func HandleSubtreeRemoval(ctxName, pathExp string, drMg *data.DirTreeManager) er
 }
 
 func untrackInternal(ctxName, pathExp string) error {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}

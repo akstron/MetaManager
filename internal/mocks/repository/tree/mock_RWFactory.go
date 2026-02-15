@@ -2,10 +2,10 @@
 // github.com/vektra/mockery
 // template: testify
 
-package storage
+package tree
 
 import (
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -37,23 +37,23 @@ func (_m *MockRWFactory) EXPECT() *MockRWFactory_Expecter {
 }
 
 // GetTreeRW provides a mock function for the type MockRWFactory
-func (_mock *MockRWFactory) GetTreeRW() (storage.TreeRW, error) {
+func (_mock *MockRWFactory) GetTreeRW() (tree.TreeRW, error) {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTreeRW")
 	}
 
-	var r0 storage.TreeRW
+	var r0 tree.TreeRW
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func() (storage.TreeRW, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func() (tree.TreeRW, error)); ok {
 		return returnFunc()
 	}
-	if returnFunc, ok := ret.Get(0).(func() storage.TreeRW); ok {
+	if returnFunc, ok := ret.Get(0).(func() tree.TreeRW); ok {
 		r0 = returnFunc()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(storage.TreeRW)
+			r0 = ret.Get(0).(tree.TreeRW)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func() error); ok {
@@ -81,12 +81,12 @@ func (_c *MockRWFactory_GetTreeRW_Call) Run(run func()) *MockRWFactory_GetTreeRW
 	return _c
 }
 
-func (_c *MockRWFactory_GetTreeRW_Call) Return(treeRW storage.TreeRW, err error) *MockRWFactory_GetTreeRW_Call {
+func (_c *MockRWFactory_GetTreeRW_Call) Return(treeRW tree.TreeRW, err error) *MockRWFactory_GetTreeRW_Call {
 	_c.Call.Return(treeRW, err)
 	return _c
 }
 
-func (_c *MockRWFactory_GetTreeRW_Call) RunAndReturn(run func() (storage.TreeRW, error)) *MockRWFactory_GetTreeRW_Call {
+func (_c *MockRWFactory_GetTreeRW_Call) RunAndReturn(run func() (tree.TreeRW, error)) *MockRWFactory_GetTreeRW_Call {
 	_c.Call.Return(run)
 	return _c
 }

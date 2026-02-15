@@ -6,14 +6,15 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/data"
-	"github.com/heroku/self/MetaManager/internal/file"
-	"github.com/heroku/self/MetaManager/internal/printer"
-	"github.com/heroku/self/MetaManager/internal/utils"
-	"github.com/heroku/self/MetaManager/internal/storage"
 	"os"
 	"regexp"
+
+	"github.com/heroku/self/MetaManager/internal/data"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/printer"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
+	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -48,7 +49,7 @@ finally:
 }
 
 func searchNodeInternal(ctxName, regexPattern string) error {
-	rw, err := storage.GetRW(ctxName)
+	rw, err := tree.GetRW(ctxName)
 	if err != nil {
 		return err
 	}

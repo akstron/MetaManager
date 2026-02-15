@@ -2,9 +2,10 @@ package data
 
 import (
 	"fmt"
+
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 )
 
 /*
@@ -25,7 +26,7 @@ TODO: Create a TagReader interface instead
 This way we can decouple tree reading writing from tag
 probably
 */
-// func (tgMg *TagManager) Load(r storage.TreeReader) error {
+// func (tgMg *TagManager) Load(r tree.TreeReader) error {
 // 	var err error
 
 // 	root, err := r.Read()
@@ -117,6 +118,6 @@ func (*TagManager) iterateAndExtractPathsWithTag(it ds.TreeIterable, tag string)
 	return result, nil
 }
 
-func (tgMg *TagManager) Save(rw storage.TreeRW) error {
+func (tgMg *TagManager) Save(rw tree.TreeRW) error {
 	return rw.Write(tgMg.trMg.Root)
 }

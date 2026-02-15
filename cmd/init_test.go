@@ -7,7 +7,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
 	filesys "github.com/heroku/self/MetaManager/internal/repository/context"
-	"github.com/heroku/self/MetaManager/internal/storage"
+	"github.com/heroku/self/MetaManager/internal/repository/tree"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/require"
@@ -41,7 +41,7 @@ func TestInit(t *testing.T) {
 		err := EnsureAppDataDir("default")
 		require.NoError(t, err)
 
-		rw, err := storage.GetRW("default")
+		rw, err := tree.GetRW("default")
 		require.NoError(t, err)
 
 		node, err := rw.Read()
@@ -84,7 +84,7 @@ func TestEnsureAppDataDirGDriveRoot(t *testing.T) {
 	err = EnsureAppDataDir(gdriveCtxName)
 	require.NoError(t, err)
 
-	rw, err := storage.GetRW(gdriveCtxName)
+	rw, err := tree.GetRW(gdriveCtxName)
 	require.NoError(t, err)
 	node, err := rw.Read()
 	require.NoError(t, err)

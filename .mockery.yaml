@@ -19,14 +19,14 @@ packages:
       Tracker:
   github.com/heroku/self/MetaManager/internal/repository/context:
     config:
-      dir: "internal/mocks/repository/filesys"
+      dir: "internal/mocks/repository/context"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
       ContextRepository:
-  github.com/heroku/self/MetaManager/internal/storage:
+  github.com/heroku/self/MetaManager/internal/repository/tree:
     config:
-      dir: "internal/mocks/storage"
+      dir: "internal/mocks/repository/tree"
       filename: "mock_{{.InterfaceName}}.go"
       structname: "Mock{{.InterfaceName}}"
     interfaces:

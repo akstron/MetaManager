@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package storage
+package tree
 
 import (
 	"github.com/heroku/self/MetaManager/internal/ds"
