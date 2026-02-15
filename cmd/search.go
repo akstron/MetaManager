@@ -20,7 +20,7 @@ var searchCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(searchCmd)
+	RootCmd.AddCommand(searchCmd)
 
 	// Here you will define your flags and configuration settings.
 

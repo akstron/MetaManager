@@ -233,7 +233,7 @@ var idGetCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(idCmd)
+	RootCmd.AddCommand(idCmd)
 
 	idCmd.AddCommand(idSetCmd)
 	idCmd.AddCommand(idJumpCmd)

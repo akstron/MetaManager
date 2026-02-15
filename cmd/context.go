@@ -79,7 +79,7 @@ var contextDeleteCmd = &cobra.Command{
 var contextCreateType string
 
 func init() {
-	rootCmd.AddCommand(contextCmd)
+	RootCmd.AddCommand(contextCmd)
 	contextCmd.AddCommand(contextSetCmd)
 	contextCmd.AddCommand(contextCreateCmd)
 	contextCmd.AddCommand(contextGetCmd)

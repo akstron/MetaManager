@@ -125,7 +125,7 @@ var untrackCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(untrackCmd)
+	RootCmd.AddCommand(untrackCmd)
 
 	// Here you will define your flags and configuration settings.
 

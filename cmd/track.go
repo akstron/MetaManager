@@ -241,7 +241,7 @@ Subcommands:
 }
 
 func init() {
-	rootCmd.AddCommand(trackCmd)
+	RootCmd.AddCommand(trackCmd)
 	trackCmd.AddCommand(trackShowCmd)
 	trackShowCmd.Flags().BoolP("tag", "t", false, "include tags for each node")
 	trackShowCmd.Flags().BoolP("id", "i", false, "include id for each node")

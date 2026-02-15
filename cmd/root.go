@@ -9,11 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd is the base command when called without any subcommands.
-var rootCmd = &cobra.Command{
-	Use:   "PathTracer",
-	Short: "Manage your paths using this!",
-	Long:  `Same as short description...`,
+// RootCmd is the base command when called without any subcommands.
+var RootCmd = &cobra.Command{
+	Use:   "MetaManager",
+	Short: "Manage your metadata using this!",
+	Long:  `MetaManager is a tool for managing your files metadata.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if ok, _ := cmd.Root().PersistentFlags().GetBool("debug"); ok {
 			logrus.SetLevel(logrus.DebugLevel)
@@ -24,12 +24,12 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
+	RootCmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
 }
 
 // Execute runs the root command and exits with the appropriate code on error.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

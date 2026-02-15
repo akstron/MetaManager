@@ -28,7 +28,7 @@ var tagCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(tagCmd)
+	RootCmd.AddCommand(tagCmd)
 
 	// Register tag subcommands
 	tagCmd.AddCommand(tagAddCmd)

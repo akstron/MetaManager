@@ -69,15 +69,15 @@ var contextCdCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(gdriveCmd)
+	RootCmd.AddCommand(gdriveCmd)
 	gdriveCmd.AddCommand(gdriveListCmd)
 	gdriveCmd.AddCommand(gdrivePwdCmd)
 	gdriveCmd.AddCommand(gdriveCdCmd)
 	gdriveCmd.AddCommand(gdriveLsCmd)
 
-	rootCmd.AddCommand(contextLsCmd)
-	rootCmd.AddCommand(contextPwdCmd)
-	rootCmd.AddCommand(contextCdCmd)
+	RootCmd.AddCommand(contextLsCmd)
+	RootCmd.AddCommand(contextPwdCmd)
+	RootCmd.AddCommand(contextCdCmd)
 }
 
 // isGDriveContext returns true if the current context type is gdrive.
