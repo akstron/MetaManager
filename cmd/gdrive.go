@@ -9,6 +9,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/filesys"
 	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/services"
+	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )
 
@@ -46,6 +47,14 @@ var gdriveLsCmd = &cobra.Command{
 	RunE:  runGDriveLs,
 }
 
+var gdriveGetLinkCmd = &cobra.Command{
+	Use:   "link [file-path]",
+	Short: "Get the Google Drive web link for a file",
+	Long:  `Returns the web view link for a file at the given path. Path can be a full path like "/Folder/file.txt" or a file ID.`,
+	Args:  cobra.ExactArgs(1),
+	RunE:  runGDriveGetLink,
+}
+
 // contextLsCmd, contextCdCmd, contextPwdCmd run gdrive ls/cd/pwd when current context is gdrive.
 var contextLsCmd = &cobra.Command{
 	Use:   "ls [path]",
@@ -74,6 +83,14 @@ func init() {
 	gdriveCmd.AddCommand(gdrivePwdCmd)
 	gdriveCmd.AddCommand(gdriveCdCmd)
 	gdriveCmd.AddCommand(gdriveLsCmd)
+
+	// Create "get" subcommand
+	var gdriveGetCmd = &cobra.Command{
+		Use:   "get",
+		Short: "Get information about Google Drive files",
+	}
+	gdriveGetCmd.AddCommand(gdriveGetLinkCmd)
+	gdriveCmd.AddCommand(gdriveGetCmd)
 
 	RootCmd.AddCommand(contextLsCmd)
 	RootCmd.AddCommand(contextPwdCmd)
@@ -264,5 +281,39 @@ func runGDriveLs(cmd *cobra.Command, args []string) error {
 	if len(entries) == 0 {
 		fmt.Println("  (empty)")
 	}
+	return nil
+}
+
+func runGDriveGetLink(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+	svc, err := GetGDriveService(ctx)
+	if err != nil {
+		return err
+	}
+
+	resolver := filesys.NewBasicResolver(defaultStore)
+	resolvedPath, err := resolver.Resolve(args[0])
+	if err != nil {
+		return err
+	}
+
+	// Strip gdrive:/ prefix for API call
+	filePath := strings.TrimPrefix(resolvedPath, file.GDrivePathPrefix)
+	if filePath == "" {
+		return fmt.Errorf("invalid path: %q", args[0])
+	}
+
+	link, err := svc.GetFileLink(ctx, filePath)
+	if err != nil {
+		return fmt.Errorf("get link for %q: %w", filePath, err)
+	}
+
+	fmt.Println(link)
+
+	// Open the link in the default browser
+	if err := browser.OpenURL(link); err != nil {
+		return fmt.Errorf("open browser: %w", err)
+	}
+
 	return nil
 }

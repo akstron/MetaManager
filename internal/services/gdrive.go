@@ -44,6 +44,7 @@ type GDriveServiceInterface interface {
 	ListRoot(ctx context.Context) ([]RootEntry, error)
 	ResolvePath(ctx context.Context, path string) (folderID string, err error)
 	ListAtPath(ctx context.Context, path string) ([]RootEntry, error)
+	GetFileLink(ctx context.Context, path string) (string, error)
 }
 
 // GDriveService authenticates with Google Drive using a stored token and lists directory structure.
@@ -201,4 +202,76 @@ func (g *GDriveService) ListAtPath(ctx context.Context, path string) ([]RootEntr
 		return nil, err
 	}
 	return g.ListFolder(ctx, folderID)
+}
+
+// ResolveFilePath resolves a full file path like "/Folder/file.txt" or "/file.txt" to the Drive file ID.
+// Path is slash-separated; leading and trailing slashes are ignored.
+// Returns error if the file is not found.
+func (g *GDriveService) ResolveFilePath(ctx context.Context, path string) (fileID string, err error) {
+	path = strings.Trim(path, "/")
+	if path == "" {
+		return "", fmt.Errorf("empty path")
+	}
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 {
+		return "", fmt.Errorf("invalid path")
+	}
+
+	// Get the parent folder path and filename
+	filename := parts[len(parts)-1]
+	parentPath := strings.Join(parts[:len(parts)-1], "/")
+
+	// Resolve parent folder
+	parentID, err := g.ResolvePath(ctx, parentPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve parent path %q: %w", parentPath, err)
+	}
+
+	// Find the file in the parent folder
+	entries, err := g.ListFolder(ctx, parentID)
+	if err != nil {
+		return "", fmt.Errorf("list folder %q: %w", parentPath, err)
+	}
+
+	for _, entry := range entries {
+		if entry.Name == filename {
+			return entry.Id, nil
+		}
+	}
+
+	return "", fmt.Errorf("file not found: %q in %q", filename, parentPath)
+}
+
+// GetFileLink returns the web view link for a file at the given path.
+// Path can be a full path like "/Folder/file.txt" or a file ID.
+func (g *GDriveService) GetFileLink(ctx context.Context, path string) (string, error) {
+	var fileID string
+	var err error
+
+	// Check if path is a file ID (typically a long alphanumeric string)
+	// If it doesn't contain "/", assume it's a file ID
+	if !strings.Contains(path, "/") && len(path) > 10 {
+		fileID = path
+	} else {
+		// Resolve the path to get file ID
+		fileID, err = g.ResolveFilePath(ctx, path)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// Get file metadata including webViewLink
+	file, err := g.svc.Files.Get(fileID).
+		Fields("webViewLink").
+		Context(ctx).
+		Do()
+	if err != nil {
+		return "", fmt.Errorf("get file %q: %w", fileID, err)
+	}
+
+	if file.WebViewLink == "" {
+		return "", fmt.Errorf("file %q does not have a web view link", path)
+	}
+
+	return file.WebViewLink, nil
 }
