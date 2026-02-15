@@ -1,9 +1,9 @@
 package file
 
 import (
-	"github.com/heroku/self/MetaManager/internal/utils"
-
 	"github.com/jedib0t/go-pretty/v6/list"
+
+	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
 type GetPrintStringFunc func(info any) (string, error)

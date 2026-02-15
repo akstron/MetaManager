@@ -2,6 +2,7 @@ package file
 
 import (
 	mapstructure "github.com/go-viper/mapstructure/v2"
+
 	"github.com/heroku/self/MetaManager/internal/ds"
 )
 

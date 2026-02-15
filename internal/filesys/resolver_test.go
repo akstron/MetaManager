@@ -7,7 +7,7 @@ import (
 
 	"github.com/heroku/self/MetaManager/internal/file"
 	contextmocks "github.com/heroku/self/MetaManager/internal/mocks/repository/filesys"
-	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

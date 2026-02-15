@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/heroku/self/MetaManager/internal/repository/filesys"
+	filesys "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/require"

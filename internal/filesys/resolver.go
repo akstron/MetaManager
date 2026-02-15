@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/heroku/self/MetaManager/internal/file"
-	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
 )
 
 type Resolver interface {

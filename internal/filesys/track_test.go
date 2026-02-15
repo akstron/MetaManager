@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/utils"
 
 	"github.com/stretchr/testify/require"

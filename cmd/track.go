@@ -14,7 +14,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/file"
 	"github.com/heroku/self/MetaManager/internal/filesys"
 	"github.com/heroku/self/MetaManager/internal/printer"
-	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 

@@ -9,7 +9,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/config"
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
-	contextrepo "github.com/heroku/self/MetaManager/internal/repository/filesys"
+	contextrepo "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
 )

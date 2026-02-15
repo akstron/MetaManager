@@ -9,7 +9,7 @@ import (
 	"github.com/heroku/self/MetaManager/internal/file"
 	filesyspkg "github.com/heroku/self/MetaManager/internal/filesys"
 	servicemocks "github.com/heroku/self/MetaManager/internal/mocks/services"
-	"github.com/heroku/self/MetaManager/internal/repository/filesys"
+	filesys "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"

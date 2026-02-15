@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestFileStorageRW_Write(t *testing.T) {
@@ -47,8 +47,6 @@ func TestFileStorageRW_Write(t *testing.T) {
 		require.NoError(t, err)
 
 		require.NotNil(t, treeNodeJSON.Info)
-		// Note: When TreeNode is marshaled, it uses default struct marshaling for the Info interface,
-		// which produces "AbsPath" instead of "Parent" (FileNode's MarshalJSON is not called for interface fields)
 		absPath, ok := treeNodeJSON.Info["AbsPath"]
 		require.True(t, ok, "AbsPath key should exist in Info map")
 		require.Equal(t, "/root", absPath)

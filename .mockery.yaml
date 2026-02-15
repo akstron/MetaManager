@@ -17,7 +17,7 @@ packages:
       Scanner:
       ScannableNode:
       Tracker:
-  github.com/heroku/self/MetaManager/internal/repository/filesys:
+  github.com/heroku/self/MetaManager/internal/repository/context:
     config:
       dir: "internal/mocks/repository/filesys"
       filename: "mock_{{.InterfaceName}}.go"

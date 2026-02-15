@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/heroku/self/MetaManager/internal/repository/filesys"
+	filesys "github.com/heroku/self/MetaManager/internal/repository/context"
 	"github.com/heroku/self/MetaManager/internal/utils"
 	"github.com/spf13/cobra"
 )
