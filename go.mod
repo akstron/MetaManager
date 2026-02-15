@@ -3,6 +3,7 @@ module github.com/heroku/self/MetaManager
 go 1.23.0
 
 require (
+	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/jedib0t/go-pretty/v6 v6.6.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/sirupsen/logrus v1.9.4

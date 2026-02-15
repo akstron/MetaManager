@@ -1,47 +1,60 @@
 package storage
 
 import (
-	"github.com/heroku/self/MetaManager/internal/ds"
-	"github.com/heroku/self/MetaManager/internal/cmderror"
-	"github.com/heroku/self/MetaManager/internal/file"
-	"github.com/heroku/self/MetaManager/internal/utils"
+	"encoding/json"
 	"os"
 	"path/filepath"
+
+	"github.com/heroku/self/MetaManager/internal/cmderror"
+	"github.com/heroku/self/MetaManager/internal/ds"
+	"github.com/heroku/self/MetaManager/internal/file"
+	"github.com/heroku/self/MetaManager/internal/utils"
 )
 
 type FileStorageRW struct {
 	dataFilePath string
 }
 
-func (f *FileStorageRW) Read() (*ds.TreeNode, error) {
-	rootNode := ds.TreeNode{}
-	rootNode.Serializer = file.FileNodeJSONSerializer{}
+func buildTreeNodeFromJSON(jsonNode *ds.TreeNodeJSON, infoSerializer ds.InfoUnmarshaler) (*ds.TreeNode, error) {
+	info, err := infoSerializer.InfoUnmarshal(jsonNode.Info)
+	if err != nil {
+		return nil, err
+	}
 
-	// Read data in bytes from dataFilePath and construct TreeManager
+	node := &ds.TreeNode{
+		Info:     info,
+		Children: []*ds.TreeNode{},
+	}
+
+	for _, child := range jsonNode.Children {
+		childTreeNode, err := buildTreeNodeFromJSON(child, infoSerializer)
+		if err != nil {
+			return nil, err
+		}
+		node.Children = append(node.Children, childTreeNode)
+	}
+
+	return node, nil
+}
+
+func (f *FileStorageRW) Read() (*ds.TreeNode, error) {
 	serializedNode, err := os.ReadFile(f.dataFilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	// err = json.Unmarshal(serializedNode, &rootNode)
-	err = rootNode.UnmarshalJSON(serializedNode)
+	var rootNode ds.TreeNodeJSON
+
+	err = json.Unmarshal(serializedNode, &rootNode)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rootNode, nil
+	return buildTreeNodeFromJSON(&rootNode, &file.FileNodeJSONSerializer{})
 }
 
 func (f *FileStorageRW) Write(root *ds.TreeNode) error {
-	root.Serializer = file.FileNodeJSONSerializer{}
-
-	// Save the tree structure in data.json
-	// serializedNode, err := json.Marshal(root)
-	// if err != nil {
-	// 	return err
-	// }
-
-	serializedNode, err := root.MarshalJSON()
+	serializedNode, err := json.Marshal(root)
 	if err != nil {
 		return err
 	}

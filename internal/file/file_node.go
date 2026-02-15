@@ -1,6 +1,7 @@
 package file
 
 import (
+	"encoding/json"
 	"io/fs"
 )
 
@@ -14,12 +15,12 @@ type NodeInformable interface {
 	GetId() string
 }
 type GeneralNode struct {
-	AbsPath string
-	Entry   fs.FileInfo
-	Tags    []string
+	AbsPath string      `mapstructure:"Parent"`
+	Entry   fs.FileInfo `mapstructure:"Entry"`
+	Tags    []string    `mapstructure:"Tags"`
 	// User friendly id, which uniquely finds a node
 	// exception: empty string
-	Id string
+	Id string `mapstructure:"Id"`
 }
 
 func NewGeneralNode(absPath string, entry fs.FileInfo) GeneralNode {
@@ -72,8 +73,8 @@ type SerializableNode interface {
 
 // FileNode represents a file or directory (local or gdrive). DriveId is set for Google Drive nodes.
 type FileNode struct {
-	GeneralNode
-	DriveId string // non-empty for Google Drive nodes
+	GeneralNode `mapstructure:",squash"`
+	DriveId     string `mapstructure:"DriveId"` // non-empty for Google Drive nodes
 }
 
 func (fn *FileNode) GetInfoProvider() NodeInformable {
@@ -82,4 +83,34 @@ func (fn *FileNode) GetInfoProvider() NodeInformable {
 
 func (fn *FileNode) Name() string {
 	return "FILE"
+}
+
+// NodeJSON is the JSON representation of FileNode, using "Parent" instead of "AbsPath"
+type NodeJSON struct {
+	Parent  string   `json:"Parent"`
+	Tags    []string `json:"Tags,omitempty"`
+	Id      string   `json:"Id,omitempty"`
+	DriveId string   `json:"DriveId,omitempty"`
+}
+
+func (fn *FileNode) MarshalJSON() ([]byte, error) {
+	obj := NodeJSON{
+		Parent:  fn.AbsPath,
+		Tags:    fn.Tags,
+		Id:      fn.Id,
+		DriveId: fn.DriveId,
+	}
+	return json.Marshal(obj)
+}
+
+func (fn *FileNode) UnmarshalJSON(data []byte) error {
+	var obj NodeJSON
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+	fn.AbsPath = obj.Parent
+	fn.Tags = obj.Tags
+	fn.Id = obj.Id
+	fn.DriveId = obj.DriveId
+	return nil
 }

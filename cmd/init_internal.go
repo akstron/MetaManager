@@ -66,9 +66,8 @@ func EnsureAppDataDir(contextName string) error {
 	}
 	emptyRoot := &ds.TreeNode{
 		// root is a special path that is used to represent the root of the tree
-		Info:       &file.FileNode{GeneralNode: file.GeneralNode{AbsPath: absPath}},
-		Children:   nil,
-		Serializer: file.FileNodeJSONSerializer{},
+		Info:     &file.FileNode{GeneralNode: file.GeneralNode{AbsPath: absPath}},
+		Children: nil,
 	}
 	dataFilePath := filepath.Join(appDir, utils.DataFileName)
 	rw, err := storage.NewFileStorageRW(dataFilePath)
