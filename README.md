@@ -36,9 +36,18 @@ go mod download
 
 If you want to use Google Drive features:
 
-1. Obtain a `credentials.json` file from Google Cloud Console
-2. Place it in the project root directory
+1. **Create OAuth 2.0 Client ID** in Google Cloud Console:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Navigate to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Choose "Desktop app" as the application type
+   - Download the `credentials.json` file
+
+2. Place the `credentials.json` file in the project root directory
+
 3. The credentials will be embedded into the binary during build
+
+**Note:** The `credentials.json` file contains a public OAuth client ID (not a secret). This is the standard way to configure OAuth for desktop applications and is safe to include in your repository. It's not a credential leak - Google designed these credentials to be public for desktop apps. The actual authentication happens through user login via `MetaManager login`.
 
 ### 4. Build the Application
 
