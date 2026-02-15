@@ -8,11 +8,11 @@ import (
 	"github.com/heroku/self/MetaManager/internal/ds"
 	"github.com/heroku/self/MetaManager/internal/file"
 	filesyspkg "github.com/heroku/self/MetaManager/internal/filesys"
+	servicemocks "github.com/heroku/self/MetaManager/internal/mocks/services"
 	"github.com/heroku/self/MetaManager/internal/repository/filesys"
 	"github.com/heroku/self/MetaManager/internal/services"
 	"github.com/heroku/self/MetaManager/internal/storage"
 	"github.com/heroku/self/MetaManager/internal/utils"
-	servicemocks "github.com/heroku/self/MetaManager/mocks/services"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

@@ -39,17 +39,17 @@ This package uses [mockery](https://github.com/vektra/mockery) to generate mocks
 
 ### Generated Mocks
 
-The following mocks are generated in the `mocks/` directory:
+The following mocks are generated in the `internal/mocks/` directory:
 
-- `mocks/services/mock_GDriveServiceInterface.go` - Mock for Google Drive service
-- `mocks/filesys/mock_Scanner.go` - Mock for Scanner interface
-- `mocks/filesys/mock_ScannableNode.go` - Mock for ScannableNode interface
-- `mocks/filesys/mock_Tracker.go` - Mock for Tracker interface
-- `mocks/repository/filesys/mock_ContextRepository.go` - Mock for ContextRepository interface
-- `mocks/storage/` - Mocks for TreeReader, TreeWriter, TreeRW, RWFactory
-- `mocks/file/` - Mocks for NodeInformable, SerializableNode, TagsPrinter, NodePrinter, IdPrinter
-- `mocks/printer/` - Mocks for ListPrintable, PrintingContext
-- `mocks/ds/` - Mocks for TreeIterable, NodeIterable, InfoSerializer, TreeNodeInformable
+- `internal/mocks/services/mock_GDriveServiceInterface.go` - Mock for Google Drive service
+- `internal/mocks/filesys/mock_Scanner.go` - Mock for Scanner interface
+- `internal/mocks/filesys/mock_ScannableNode.go` - Mock for ScannableNode interface
+- `internal/mocks/filesys/mock_Tracker.go` - Mock for Tracker interface
+- `internal/mocks/repository/filesys/mock_ContextRepository.go` - Mock for ContextRepository interface
+- `internal/mocks/storage/` - Mocks for TreeReader, TreeWriter, TreeRW, RWFactory
+- `internal/mocks/file/` - Mocks for NodeInformable, SerializableNode, TagsPrinter, NodePrinter, IdPrinter
+- `internal/mocks/printer/` - Mocks for ListPrintable, PrintingContext
+- `internal/mocks/ds/` - Mocks for TreeIterable, NodeIterable, InfoSerializer, TreeNodeInformable
 
 All mocks use `package mocks` and can be imported from their respective subdirectories.
 
@@ -66,7 +66,7 @@ import (
     
     "github.com/heroku/self/MetaManager/internal/filesys"
     "github.com/heroku/self/MetaManager/internal/services"
-    servicemocks "github.com/heroku/self/MetaManager/mocks/services"
+    servicemocks "github.com/heroku/self/MetaManager/internal/mocks/services"
     "github.com/stretchr/testify/require"
     "github.com/stretchr/testify/mock"
 )
@@ -108,7 +108,7 @@ go get go.uber.org/mock/gomock
 
 ```go
 import (
-    filesysmocks "github.com/heroku/self/MetaManager/mocks/filesys"
+    filesysmocks "github.com/heroku/self/MetaManager/internal/mocks/filesys"
     "github.com/stretchr/testify/mock"
 )
 
@@ -154,14 +154,14 @@ The mockery configuration is stored in `.mockery.yaml` at the project root. Key 
 - `dir: "mocks"` - Output directory for mocks (relative to interface package)
 - `filename: "{{.MockName}}.go"` - Filename pattern for generated mocks
 
-The configuration generates mocks in subdirectories under `mocks/`:
-- `GDriveServiceInterface` in `mocks/services/`
-- `Scanner`, `ScannableNode`, and `Tracker` in `mocks/filesys/`
-- `ContextRepository` in `mocks/repository/filesys/`
-- Storage interfaces in `mocks/storage/`
-- File interfaces in `mocks/file/`
-- Printer interfaces in `mocks/printer/`
-- Data structure interfaces in `mocks/ds/`
+The configuration generates mocks in subdirectories under `internal/mocks/`:
+- `GDriveServiceInterface` in `internal/mocks/services/`
+- `Scanner`, `ScannableNode`, and `Tracker` in `internal/mocks/filesys/`
+- `ContextRepository` in `internal/mocks/repository/filesys/`
+- Storage interfaces in `internal/mocks/storage/`
+- File interfaces in `internal/mocks/file/`
+- Printer interfaces in `internal/mocks/printer/`
+- Data structure interfaces in `internal/mocks/ds/`
 
 All mocks use `package mocks` and can be imported from their respective subdirectories.
 
@@ -192,7 +192,8 @@ internal/filesys/
 ├── file_scanner.go         # Local file system scanner
 ├── gdrive_scanner.go       # Google Drive scanner
 ├── track.go                # Context-aware tracker
-├── mocks/                  # Generated mocks (git tracked)
+├── internal/
+│   └── mocks/              # Generated mocks (git tracked)
 │   ├── MockScanner.go
 │   └── MockScannableNode.go
 └── README.md               # This file
