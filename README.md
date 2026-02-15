@@ -186,6 +186,67 @@ go build -o MetaManager
 GOOS=linux GOARCH=amd64 go build -o MetaManager-linux
 ```
 
+### Generating Mocks with Mockery
+
+This project uses [mockery](https://github.com/vektra/mockery) to generate mocks for testing. The mock configuration is defined in `.mockery.yaml`.
+
+#### Installing Mockery
+
+```bash
+# Install mockery
+go install github.com/vektra/mockery/v2@latest
+
+# Or using Homebrew (macOS)
+brew install mockery
+```
+
+#### Generating Mocks
+
+To generate all mocks defined in `.mockery.yaml`:
+
+```bash
+mockery
+```
+
+This will generate mock files in the `internal/mocks/` directory based on the configuration.
+
+#### Adding New Mocks
+
+To add mocks for new interfaces:
+
+1. Edit `.mockery.yaml` and add the interface under the appropriate package
+2. Run `mockery` to generate the mocks
+3. The generated mocks will be placed in the directory specified in the config
+
+Example configuration entry:
+```yaml
+github.com/heroku/self/MetaManager/internal/yourpackage:
+  config:
+    dir: "internal/mocks/yourpackage"
+    filename: "mock_{{.InterfaceName}}.go"
+    structname: "Mock{{.InterfaceName}}"
+  interfaces:
+    YourInterface:
+```
+
+#### Using Mocks in Tests
+
+The generated mocks use the testify mock framework. Example usage:
+
+```go
+import (
+    "testing"
+    "github.com/heroku/self/MetaManager/internal/mocks/filesys"
+)
+
+func TestSomething(t *testing.T) {
+    mockScanner := filesys.NewMockScanner(t)
+    mockScanner.EXPECT().Scan("/path").Return(&ds.TreeNode{}, nil)
+    
+    // Use mockScanner in your test
+}
+```
+
 ### Debug Mode
 
 Enable debug logging for troubleshooting:
