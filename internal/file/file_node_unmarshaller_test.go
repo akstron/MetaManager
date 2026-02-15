@@ -11,7 +11,7 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("local file node with all fields", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent":  "/path/to/file",
+			"AbsPath": "/path/to/file",
 			"Tags":    []interface{}{"tag1", "tag2"},
 			"Id":      "node-id-123",
 			"DriveId": "",
@@ -32,7 +32,7 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("Google Drive node with DriveId", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent":  "gdrive:/Folder/file.txt",
+			"AbsPath": "gdrive:/Folder/file.txt",
 			"Tags":    []interface{}{"gdrive", "document"},
 			"Id":      "drive-node-456",
 			"DriveId": "1a2b3c4d5e6f7g8h",
@@ -50,9 +50,9 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 		require.Equal(t, "1a2b3c4d5e6f7g8h", fn.DriveId)
 	})
 
-	t.Run("minimal node with only Parent", func(t *testing.T) {
+	t.Run("minimal node with only AbsPath", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent": "/root",
+			"AbsPath": "/root",
 		}
 
 		result, err := serializer.InfoUnmarshal(info)
@@ -69,9 +69,9 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("node with empty tags slice", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent": "/path/to/dir",
-			"Tags":   []interface{}{},
-			"Id":     "empty-tags-id",
+			"AbsPath": "/path/to/dir",
+			"Tags":    []interface{}{},
+			"Id":      "empty-tags-id",
 		}
 
 		result, err := serializer.InfoUnmarshal(info)
@@ -87,8 +87,8 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("node with single tag", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent": "/single/tag/path",
-			"Tags":   []interface{}{"important"},
+			"AbsPath": "/single/tag/path",
+			"Tags":    []interface{}{"important"},
 		}
 
 		result, err := serializer.InfoUnmarshal(info)
@@ -103,8 +103,8 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("root path node", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent": "/",
-			"Id":     "root-id",
+			"AbsPath": "/",
+			"Id":      "root-id",
 		}
 
 		result, err := serializer.InfoUnmarshal(info)
@@ -119,8 +119,8 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("gdrive root path", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent": GDrivePathPrefix,
-			"Id":     "gdrive-root",
+			"AbsPath": GDrivePathPrefix,
+			"Id":      "gdrive-root",
 		}
 
 		result, err := serializer.InfoUnmarshal(info)
@@ -135,7 +135,7 @@ func TestFileNodeJSONSerializer_InfoUnmarshal(t *testing.T) {
 
 	t.Run("handles missing optional fields", func(t *testing.T) {
 		info := map[string]interface{}{
-			"Parent": "/minimal/path",
+			"AbsPath": "/minimal/path",
 		}
 
 		result, err := serializer.InfoUnmarshal(info)
