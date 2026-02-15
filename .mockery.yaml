@@ -61,5 +61,5 @@ packages:
     interfaces:
       TreeIterable:
       NodeIterable:
-      InfoSerializer:
+      InfoUnmarshaler:
       TreeNodeInformable:

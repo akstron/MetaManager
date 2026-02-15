@@ -5,7 +5,7 @@
 package filesys
 
 import (
-	filesys "github.com/heroku/self/MetaManager/internal/repository/context"
+	"github.com/heroku/self/MetaManager/internal/repository/context"
 	mock "github.com/stretchr/testify/mock"
 )
 
